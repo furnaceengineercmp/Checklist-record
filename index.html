@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist Furnace Area</title>
+<style>
+:root{
+  --bg:#f4f6f8; --panel:#ffffff; --text:#1c2530; --muted:#6b7684; --border:#dde3ea;
+  --accent:#2563eb; --accent-d:#1d4ed8; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+  --head:#eef2f7; --input-bg:#ffffff; --shadow:0 1px 3px rgba(20,30,50,.08);
+}
+[data-theme="dark"]{
+  --bg:#11151c; --panel:#1a2028; --text:#e6eaf0; --muted:#9aa5b3; --border:#2c3542;
+  --accent:#3b82f6; --accent-d:#60a5fa; --ok:#22c55e; --warn:#f59e0b; --bad:#f87171;
+  --head:#222a35; --input-bg:#151a21; --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.topbar .brand{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+.topbar .brand small{color:var(--muted);font-weight:400;font-size:12px;}
+.userbox{display:flex;align-items:center;gap:10px;font-size:13px;}
+.pill{padding:2px 10px;border-radius:20px;background:var(--head);border:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;}
+.icon-btn:hover{background:var(--head);}
+.wrap{max-width:1100px;margin:0 auto;padding:18px;}
+.center-wrap{max-width:420px;margin:60px auto;padding:0 16px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow);}
+.card h2{margin-top:0;}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px;}
+input,select,textarea{width:100%;padding:10px 11px;border-radius:9px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:14px;}
+textarea{resize:vertical;min-height:44px;}
+button.btn{cursor:pointer;border:none;border-radius:9px;padding:11px 16px;font-size:14px;font-weight:600;background:var(--accent);color:#fff;}
+button.btn:hover{background:var(--accent-d);}
+button.btn.secondary{background:var(--head);color:var(--text);border:1px solid var(--border);}
+button.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+button.btn.danger{background:var(--bad);color:#fff;}
+button.btn:disabled{opacity:.5;cursor:not-allowed;}
+.msg{font-size:13px;margin-top:10px;padding:9px 11px;border-radius:8px;}
+.msg.err{background:#fee2e2;color:#991b1b;}
+[data-theme="dark"] .msg.err{background:#3a1a1a;color:#f87171;}
+.msg.ok{background:#dcfce7;color:#166534;}
+[data-theme="dark"] .msg.ok{background:#12301f;color:#4ade80;}
+.msg.info{background:var(--head);color:var(--muted);}
+.linklike{color:var(--accent);cursor:pointer;text-decoration:underline;font-size:13px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+.menu-tile{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:26px 18px;text-align:center;cursor:pointer;box-shadow:var(--shadow);}
+.menu-tile:hover{border-color:var(--accent);}
+.menu-tile .emoji{font-size:34px;}
+.menu-tile h3{margin:10px 0 4px;}
+.menu-tile p{color:var(--muted);font-size:12.5px;margin:0;}
+.chk-list{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+.chk-item{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;}
+.chk-item:hover{border-color:var(--accent);}
+.chk-item .name{font-weight:600;}
+.chk-item .sub{font-size:12px;color:var(--muted);}
+.breadcrumb{font-size:13px;color:var(--muted);margin-bottom:6px;}
+.breadcrumb span{cursor:pointer;color:var(--accent);}
+.formbar{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:16px;}
+.formbar .fld{min-width:150px;flex:1;}
+.formbar label{margin:0 0 5px;}
+.status-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.3px;}
+.status-badge.draft{background:#fef3c7;color:#92400e;}
+.status-badge.final{background:#dcfce7;color:#166534;}
+[data-theme="dark"] .status-badge.draft{background:#3a2c0f;color:#fbbf24;}
+[data-theme="dark"] .status-badge.final{background:#12301f;color:#4ade80;}
+.locked-box{background:var(--panel);border:1px dashed var(--border);border-radius:14px;padding:60px 20px;text-align:center;color:var(--muted);}
+.locked-box .big{font-size:40px;}
+.savebar{position:sticky;bottom:0;background:var(--panel);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;z-index:40;}
+.autosave-note{font-size:12px;color:var(--muted);margin-right:auto;}
+table.chk-table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:13px;}
+table.chk-table th{background:var(--head);text-align:left;padding:9px 8px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);}
+table.chk-table td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top;}
+table.chk-table tr.kat-row td{background:var(--head);font-weight:700;padding:6px 8px;font-size:12.5px;}
+.kode-badge{display:inline-block;background:var(--head);border:1px solid var(--border);border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;color:var(--accent);}
+.hasil-sel{width:76px;}
+.hasil-sel.v{color:var(--ok);font-weight:700;}
+.hasil-sel.x{color:var(--bad);font-weight:700;}
+.hasil-sel.o{color:var(--warn);font-weight:700;}
+.catatan-inp{min-width:150px;}
+.legend{font-size:12px;color:var(--muted);margin:6px 0 14px;}
+.sig-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:20px;}
+.sig-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;}
+.sig-box h4{margin:0 0 4px;font-size:13px;}
+.sig-box .name{font-size:12px;color:var(--muted);margin-bottom:6px;}
+canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-radius:8px;background:var(--input-bg);touch-action:none;}
+.sig-actions{display:flex;justify-content:space-between;margin-top:6px;}
+.sig-actions button{font-size:11px;padding:4px 8px;}
+.item-col{min-width:150px;}
+.std-col{color:var(--muted);font-size:12px;min-width:170px;}
+@media(max-width:720px){
+  .grid2{grid-template-columns:1fr;}
+  .menu-grid{grid-template-columns:1fr;}
+  table.chk-table{font-size:12px;}
+  .std-col{display:none;}
+}
+@media print{
+  .topbar,.savebar,.formbar button,.no-print{display:none !important;}
+  body{background:#fff;color:#000;}
+  .wrap{max-width:100%;padding:0;}
+  table.chk-table th, table.chk-table td{border-color:#999;}
+}
+.hidden{display:none !important;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--muted);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="topbar">
+  <div class="brand">🔥 Checklist Furnace Area <small id="envTag"></small></div>
+  <div class="userbox">
+    <span id="userInfo"></span>
+    <button class="icon-btn" onclick="toggleTheme()">🌓</button>
+    <button class="icon-btn hidden" id="btnLogout" onclick="doLogout()">Keluar</button>
+  </div>
+</div>
+
+<div class="wrap" id="app"></div>
+
+<script>
+/* ======================= CONFIG ======================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbxnppoW1tZBUvCbi47mtE9mLSLc4ERny_r6cspofc_RMxqEGMLjdIRtGDQN1TWnV2o/exec";
+
+/* ======================= CHECKLIST DEFINITIONS ======================= */
+const CHECKLIST_DATA = {"skimming": {"title": "Skimming", "version": "2025 11 18", "items": [{"kat": "Stasiun Hidrolik", "item": "Housing Pompa", "kode": "VS", "std": "Suara halus dan tidak ada kebocoran", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari saluran masuk maupun keluar", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Level & Temperatur Oli", "kode": "V", "std": "Level oli di atas 1/2,\nTemperatur oli ≤50°C", "pos": "Tangki Oli"}, {"kat": "Stasiun Hidrolik", "item": "Tekanan", "kode": "V", "std": "Sesuai standar (11-12 MPa)", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Valve", "kode": "VT", "std": "Mudah diputar dan tidak macet", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Kondisi bagus, tidak ada kebocoran oli", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Sambungan Pipa & Selang", "kode": "V", "std": "Tidak longgar dan tidak ada kebocoran oli", "pos": "Sistem Auxiliary"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Mudgun", "kode": "VST", "std": "Test swing & posisikan di depan hole", "pos": "Handle Control Mudgun"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Drill", "kode": "VST", "std": "Test swing & posisikan drill maju / mundur", "pos": "Handle Control Drill"}, {"kat": "Mud/Clay Gun", "item": "Silinder Mud/Clay & Pipa Oli", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Tabung Mud/Clay & Parts Ekstension", "kode": "V", "std": "Tidak ada deformasi", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Plat Pengaman dan Penarik", "kode": "V", "std": "Tidak ada deformasi, kelonggaran maupun las-lasan terbuka", "pos": "Plat Pengaman dan Penarik"}, {"kat": "Mud/Clay Gun", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Putaran", "kode": "V", "std": "Pengoperasian stabil, tidak macet", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari sambungan", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Motor \nMaju & Mundur", "kode": "V", "std": "Tidak macet", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa Oli \nRantai Penarikan", "kode": "V", "std": "Tidak ada deformasi dan kebocoran oli", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa & Sambungan", "kode": "V", "std": "Tidak ada keretakan, sealing normal", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Rantai", "kode": "V", "std": "Baut tidak kendor maupun macet", "pos": "Part Transmisi"}, {"kat": "Launder", "item": "Kondisi Cover Plate", "kode": "VT", "std": "Kondisi baik, diperbaiki dengan green clay apabila diperlukan", "pos": "Cover Plate"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bowl bagus, tidak ada kerusakan, ramming kondisi baik", "pos": "Launder atas hingga tengah"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan", "pos": "Launder bagian ujung"}, {"kat": "Launder", "item": "Wet Launder", "kode": "V", "std": "Kondisi wet launder dalam keadaan baik, water granulation berfungsi baik", "pos": "Wet Launder"}, {"kat": "Safety", "item": "Aluminized Suit", "kode": "VT", "std": "Aluminized suit (hood, baju, celana, spat, glove) tersedia untuk digunakan", "pos": "Aluminized Suit"}, {"kat": "Safety", "item": "Face Shield", "kode": "V", "std": "Face shield tersedia untuk digunakan", "pos": "Face Shield"}, {"kat": "Safety", "item": "Gloves Tahan Panas", "kode": "VT", "std": "Gloves tersedia untuk digunakan", "pos": "Gloves Tahan Panas"}, {"kat": "Safety", "item": "APAR / Fire Extinguisher", "kode": "VT", "std": "Tersedia APAR dry powder (cek tekanan-nya)", "pos": "APAR"}, {"kat": "Safety", "item": "On-Site Gas Analyzer", "kode": "V", "std": "Gas analyzer CO berfungsi", "pos": "CO Analyzer"}, {"kat": "Peralatan Penunjang", "item": "Pipe Lancing", "kode": "V", "std": "Pipa lancing tersedia & siap digunakan", "pos": "Pipe Lancing"}, {"kat": "Peralatan Penunjang", "item": "Connector", "kode": "VT", "std": "Connector & hose tersambung ke sumber oxygen dengan kondisi baik", "pos": "Connector"}, {"kat": "Peralatan Penunjang", "item": "Pencungkil Build Up", "kode": "V", "std": "Pencungkil & peralatan penunjang lainnya tersedia & siap digunakan", "pos": "Pencungkil Build Up"}, {"kat": "Peralatan Penunjang", "item": "Sendok & Cetakan Sample", "kode": "VT", "std": "Sendok & cetakan sampel tersedia, diberi kapur / ramming, & sudah dipanaskan", "pos": "Sendok & Cetakan Sample"}, {"kat": "Peralatan Penunjang", "item": "Temp Tip & Rod", "kode": "V", "std": "Temp rod berfungsi & stok temp tip tersedia di area", "pos": "Temp Tip & Rod"}, {"kat": "Peralatan Penunjang", "item": "Emergency Plug", "kode": "V", "std": "Emergency plug tersedia di area untuk kondisi emergency", "pos": "Emergency Plug & Palu 5 kg"}, {"kat": "Peralatan Penunjang", "item": "Oven Body & Temp Controller", "kode": "VT", "std": "Oven berfungsi dengan baik, temp 80-100 C", "pos": "Oven"}, {"kat": "Peralatan Penunjang", "item": "Lampu di sebelah Utara & Selatan", "kode": "V", "std": "Lampu berfungsi dengan baik", "pos": "Lampu Penerangan"}, {"kat": "Peralatan Penunjang", "item": "Exhaust Hood Utara & Selatan", "kode": "VT", "std": "Exhaust (HVAC system) bekerja dengan baik", "pos": "Exhaust Hood"}, {"kat": "Peralatan Penunjang", "item": "Blower Cooling Fan", "kode": "V", "std": "Blower tersedia & berfungsi dengan baik", "pos": "Blower Fan"}, {"kat": "Materials", "item": "Clay Mudgun", "kode": "V", "std": "Clay tersedia di area skimming & siap digunakan (sudah di oven)", "pos": "Clay Mudgun"}, {"kat": "Materials", "item": "Oxygen Source", "kode": "V", "std": "Sumber oxygen tersedia dengan minimal press 1 Mpa", "pos": "Oxygen Source"}, {"kat": "Materials", "item": "Pasir Kuning, Sekam Padi, Kapur", "kode": "V", "std": "Pasir, sekam padi, kapur tersedia di bagian Utara maupun Selatan launder", "pos": "Pasir Kuning, Sekam Padi, Kapur"}, {"kat": "Materials", "item": "Ramming Material", "kode": "V", "std": "Ramming material tersedia di area untuk service launder", "pos": "Ramming Material"}, {"kat": "Coordination", "item": "Koordinasi CCR, Water Checker, & Clamshell", "kode": "V", "std": "Memastikan kesiapan area downstream untuk memproses slag yang di granulasi", "pos": "Koordinasi Fokker Base"}]}, "tapping": {"title": "Tapping", "version": "2025 10 18", "items": [{"kat": "Stasiun Hidrolik", "item": "Housing Pompa", "kode": "VS", "std": "Suara halus & tidak ada kebocoran", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari saluran masuk maupun keluar", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Level & Temperatur Oli", "kode": "V", "std": "Level oli di atas 1/2, Temperatur oli ≤ 50°C", "pos": "Tangki Oli"}, {"kat": "Stasiun Hidrolik", "item": "Tekanan", "kode": "V", "std": "Sesuai standar (11-12 MPa)", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Valve", "kode": "VT", "std": "Mudah diputar & tidak macet", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Kondisi bagus, tidak ada kebocoran oli", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Sambungan Pipa & Selang", "kode": "V", "std": "Tidak longgar & tidak ada kebocoran oli", "pos": "Sistem Auxiliary"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Mudgun", "kode": "VST", "std": "Test swing & posisikan di depan tapping hole", "pos": "Handle Control Mudgun"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Drill", "kode": "VST", "std": "Test swing & posisikan drill maju / mundur", "pos": "Handle Control Drill"}, {"kat": "Mud/Clay Gun", "item": "Silinder Mud/Clay & Pipa Oli", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Tabung Mud/Clay & Parts Ekstension", "kode": "V", "std": "Tidak ada deformasi", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Plat Pengaman & Penarik", "kode": "V", "std": "Tidak ada deformasi, kelonggaran maupun las-lasan terbuka", "pos": "Plat Pengaman & Penarik"}, {"kat": "Mud/Clay Gun", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Kondisi Drill Bit & Rod", "kode": "VT", "std": "Drill dalam kondisi baik, pastikan stok tersedia apabila perlu diganti", "pos": "Drill Bit & Rod"}, {"kat": "Mesin Drill", "item": "Putaran", "kode": "V", "std": "Pengoperasian stabil, tidak macet", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari sambungan", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Motor Maju & Mundur", "kode": "V", "std": "Tidak macet", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa Oli & Rantai Penarikan", "kode": "V", "std": "Tidak ada deformasi & kebocoran oli", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa & Sambungan", "kode": "V", "std": "Tidak ada keretakan, sealing normal", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Rantai", "kode": "V", "std": "Baut tidak kendor maupun macet", "pos": "Part Transmisi"}, {"kat": "Launder", "item": "Kondisi Cover Plate", "kode": "VT", "std": "Kondisi baik, diperbaiki dengan green clay apabila diperlukan", "pos": "Cover Plate"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan, ramming kondisi baik", "pos": "Launder atas hingga tengah"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan", "pos": "Launder bagian ujung"}, {"kat": "Launder", "item": "Heating Up Launder", "kode": "V", "std": "Launder dipanaskan pastikan tidak ada air & minimalisir heat loss", "pos": "Heating Up Launder"}, {"kat": "Ladle ", "item": "Kondisi Ladle", "kode": "V", "std": "Ladle telah dipanaskan (temp shell ladle > 200 C) & tidak ada air didalam ladle", "pos": "Kondisi Ladle"}, {"kat": "Ladle ", "item": "Posisi Ladle ", "kode": "V", "std": "Posisi tepat di bawah ujung launder & \"mulut\" menghadap Timur", "pos": "Posisi"}, {"kat": "Safety", "item": "Aluminized Suit", "kode": "VT", "std": "Aluminized suit (hood, baju, celana, spat, glove) tersedia untuk digunakan", "pos": "Aluminized Suit"}, {"kat": "Safety", "item": "Face Shield", "kode": "V", "std": "Face shield tersedia untuk digunakan", "pos": "Face Shield"}, {"kat": "Safety", "item": "Gloves Tahan Panas", "kode": "VT", "std": "Gloves tersedia untuk digunakan", "pos": "Gloves Tahan Panas"}, {"kat": "Safety", "item": "APAR / Fire Extinguisher", "kode": "VT", "std": "Tersedia APAR dry powder (cek tekanan-nya)", "pos": "APAR"}, {"kat": "Peralatan Penunjang", "item": "Pipe Lancing", "kode": "V", "std": "Pipa lancing tersedia & siap digunakan", "pos": "Pipe Lancing"}, {"kat": "Peralatan Penunjang", "item": "Connector", "kode": "VT", "std": "Connector & hose tersambung ke sumber oxygen dengan kondisi baik", "pos": "Connector"}, {"kat": "Peralatan Penunjang", "item": "Pencungkil Build Up", "kode": "V", "std": "Pencungkil & peralatan penunjang lainnya tersedia & siap digunakan", "pos": "Pencungkil Build Up"}, {"kat": "Peralatan Penunjang", "item": "Sendok & Cetakan Sample", "kode": "VT", "std": "Sendok & cetakan sampel tersedia, diberi kapur / ramming, & sudah dipanaskan", "pos": "Sendok & Cetakan Sample"}, {"kat": "Peralatan Penunjang", "item": "Temp Tip & Rod", "kode": "V", "std": "Temp rod berfungsi & stok temp tip tersedia di area tapping", "pos": "Temp Tip & Rod"}, {"kat": "Peralatan Penunjang", "item": "Emergency Plug", "kode": "V", "std": "Emergency plug tersedia di area tapping untuk kondisi emergency", "pos": "Emergency Plug & Palu 5 kg"}, {"kat": "Peralatan Penunjang", "item": "Oven Body & Temp Controller", "kode": "VT", "std": "Oven berfungsi dengan baik, temp 80-100 C", "pos": "Oven"}, {"kat": "Materials", "item": "Clay Mudgun", "kode": "V", "std": "Clay tersedia di area tapping & siap digunakan (sudah di oven)", "pos": "Clay Mudgun"}, {"kat": "Materials", "item": "Oxygen Source", "kode": "V", "std": "Sumber oxygen tersedia dengan minimal press 1 Mpa", "pos": "Oxygen Source"}, {"kat": "Materials", "item": "Pasir Kuning, Sekam Padi, Kapur", "kode": "V", "std": "Pasir, sekam padi, kapur tersedia di bagian Utara maupun Selatan launder tapping", "pos": "Pasir Kuning, Sekam Padi, Kapur"}, {"kat": "Materials", "item": "Ramming Material", "kode": "V", "std": "Ramming material tersedia di area tapping untuk service launder", "pos": "Ramming Material"}, {"kat": "Coordination", "item": "Koordinasi HMC & Shotting", "kode": "V", "std": "Memastikan kesiapan area downstream untuk memproses FeNi yang di tapping", "pos": "Koordinasi HMC & Shotting"}]}, "hmc": {"title": "Hot Metal Crane (HMC)", "version": "2026 01 30", "items": [{"kat": "Main Hoist", "item": "Fungsi kontrol main hoist", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hoist naik turun/turun gerak halus tanpa hentakan"}, {"kat": "Main Hoist", "item": "Fungsi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, limit switch hoist memutus arus saat posisi atas/bawah tercapai"}, {"kat": "Main Hoist", "item": "Fungsi lower limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, limit switch hoist memutus arus saat posisi atas/bawah tercapai"}, {"kat": "Main Hoist", "item": "Drum hoist", "kode": "V", "std": "Drum hoist alur bersih,tanpa kerusakan"}, {"kat": "Main Hoist", "item": "Bearing dan gear box", "kode": "V", "std": "Bearing dan gear box pelumasan cukup, tidak bocor oli/grease"}, {"kat": "Main Hoist", "item": "Kondisi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Kondisi wire rope", "kode": "V", "std": "Tidak ada abnormality, wire rope utama tidak ada kawat putus, tidak kusut, tidak korosi"}, {"kat": "Main Hoist", "item": "Kondisi shaft pulley", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Kondisi bale Utara", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hook / block hook tidak retak"}, {"kat": "Main Hoist", "item": "Kondisi bale Selatan", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hook / block hook tidak retak"}, {"kat": "Main Hoist", "item": "Kondisi lock pin bale", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Sistem Pengereman", "kode": "V", "std": "Sistem rem utama respon cepat, tidak slip, sistem pengereman berhenti tepat saat kontrol di lepas"}, {"kat": "Main Hoist", "item": "Rem darurat", "kode": "V", "std": "Rem darurat aktif saat pengujian"}, {"kat": "Aux Hoist", "item": "Auxilliary", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi lower limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi power limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Kondisi wire rope", "kode": "V", "std": "Tidak ada abnormality, wire rope utama tidak ada kawat putus, tidak kusut, tidak korosi"}, {"kat": "Aux Hoist", "item": "Kondisi hook lock", "kode": "V", "std": "Kondisi hook & safety latch tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Fungsi kontrol bridge", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, bridge travel pergerakan stabil, tidak ada suara abnormal, bridge kiri/ kanan gerak lancar tidak bergetar"}, {"kat": "Bridge", "item": "Fungsi rem", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Kondisi shaft drive", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Stop block", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Fungsi kontrol trolly", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, trolly travel pergerakan halus, tidak tersendat, trolly maju/ mundur gerak stabil tidak melenceng"}, {"kat": "Trolly", "item": "Kondisi safety wood", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Stop block", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Saklar utama", "kode": "V", "std": "Saklar utama berfungsi dan tidak longgar"}, {"kat": "Trolly", "item": "Lampu indikator", "kode": "V", "std": "Lampu indikator dan display menyala normal"}, {"kat": "Trolly", "item": "Limit switch hoist", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Limit switch troley", "kode": "V", "std": "Limit swicth trolly dan bridge memutus arus saat batas tercapai"}, {"kat": "Trolly", "item": "Kabel daya", "kode": "V", "std": "Kabel daya dan kontrol tidak terkelupas,tidak longgar"}, {"kat": "Trolly", "item": "Emergency stop", "kode": "V", "std": "Emergensi stop memutus arus saat di tekan"}, {"kat": "Cabin Operator", "item": "Fungsi tombol power kontrol", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, panel kontrol bersih, bebas debu dan air, pintu terkunci"}, {"kat": "Cabin Operator", "item": "Panel monitor", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Display timbangan", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi camera", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Monitor camera", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi AC", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi radio", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi horn", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi kaca kabin", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi tempat duduk", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi tangga", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, tangga & platform kerja tidak licin, railing kokoh"}, {"kat": "Pemeriksaan Struktur", "item": "Girder", "kode": "V", "std": "Main girder dan end carriage tidak ada retakan,deformasi,atau karat parah"}, {"kat": "Pemeriksaan Struktur", "item": "Sambungan & las baut", "kode": "V", "std": "Sambungan dan las baut kencang las utuh"}, {"kat": "Pemeriksaan Struktur", "item": "Rel crane", "kode": "V", "std": "Rel crane dan roda tidak aus berlebihan,bebas dari halangan/debu tebal"}, {"kat": "Sistem Keselamatan", "item": "Alarm / Horn / Lampu / Sirene Peringatan", "kode": "VS", "std": "Alarm dan horn bunyi jelas, alarm dan lampu aktif saat operasi menyala otomatis, sirene peringatan beban panas aktif saat angkat beban"}, {"kat": "Sistem Keselamatan", "item": "Botol pemadam (APAR)", "kode": "V", "std": "APAR (pemadam) tekanan normal, tidak kadaluarsa"}, {"kat": "Sistem Keselamatan", "item": "Jalur evakuasi", "kode": "V", "std": "Jalur evakuasi aman, bebas hambatan"}]}};
+
+const SHIFTS = [
+  {id:"Pagi", label:"Pagi (07:00 - 15:00)"},
+  {id:"Siang", label:"Siang (15:00 - 23:00)"},
+  {id:"Malam", label:"Malam (23:00 - 07:00)"}
+];
+const GROUPS = ["1","2","3","4"];
+const KODE_KETERANGAN = {V:"Visual", S:"Suara", T:"Sentuh", B:"Bau"};
+const ROLE_LABEL = {operator:"Operator", supervisor:"Supervisor", superintendent:"Superintendent", engineer:"Engineer"};
+
+/* ======================= STATE ======================= */
+let SESSION = JSON.parse(localStorage.getItem("cf_session") || "null");
+let CURRENT = { checklistKey:null, tanggal:null, shift:null, group:null, record:null, sigPads:{} };
+let saveTimer = null;
+let dirty = false;
+
+/* ======================= HELPERS ======================= */
+function el(html){
+  // Returns a DocumentFragment so templates with multiple top-level
+  // elements (e.g. a breadcrumb + a grid) are ALL kept when appended,
+  // instead of silently dropping everything after the first element.
+  const t = document.createElement("template");
+  t.innerHTML = html.trim();
+  return t.content;
+}
+function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function toggleTheme(){
+  const b=document.body;
+  const cur = b.getAttribute("data-theme")==="dark"?"light":"dark";
+  b.setAttribute("data-theme",cur);
+  localStorage.setItem("cf_theme",cur);
+}
+(function initTheme(){
+  const t = localStorage.getItem("cf_theme") || "light";
+  document.body.setAttribute("data-theme", t);
+})();
+
+async function api(action, payload){
+  payload = payload || {};
+  payload.action = action;
+  if(SESSION && SESSION.token) payload.token = SESSION.token;
+  const res = await fetch(API_URL, {
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"}, // avoid CORS preflight
+    body: JSON.stringify(payload)
+  });
+  let json;
+  try{ json = await res.json(); }
+  catch(e){ throw new Error("Respon server tidak valid. Cek URL Apps Script / deployment."); }
+  if(!json.ok){ throw new Error(json.error || "Terjadi kesalahan."); }
+  return json.data;
+}
+
+function setUserBox(){
+  const box = document.getElementById("userInfo");
+  const btnLogout = document.getElementById("btnLogout");
+  if(SESSION){
+    box.innerHTML = `<b>${SESSION.fullName}</b> <span class="pill">${ROLE_LABEL[SESSION.role]||SESSION.role}</span>`;
+    btnLogout.classList.remove("hidden");
+  } else {
+    box.innerHTML = "";
+    btnLogout.classList.add("hidden");
+  }
+}
+
+function doLogout(){
+  SESSION = null;
+  localStorage.removeItem("cf_session");
+  setUserBox();
+  renderLogin();
+}
+
+/* ======================= ROUTER ======================= */
+function boot(){
+  setUserBox();
+  if(!SESSION){ renderLogin(); return; }
+  renderHome();
+}
+boot();
+
+/* ======================= LOGIN / REGISTER ======================= */
+function renderLogin(){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  app.appendChild(el(`
+  <div class="center-wrap">
+    <div class="card">
+      <h2>Masuk</h2>
+      <label>Username</label>
+      <input id="lg-user" autocomplete="username">
+      <label>Password</label>
+      <input id="lg-pass" type="password" autocomplete="current-password">
+      <div style="margin-top:18px;">
+        <button class="btn" style="width:100%" onclick="handleLogin()">LOGIN</button>
+      </div>
+      <div id="lg-msg"></div>
+      <div style="text-align:center;margin-top:16px;">
+        Belum punya akun? <span class="linklike" onclick="renderRegister()">Buat Akun</span>
+      </div>
+    </div>
+  </div>`));
+}
+
+async function handleLogin(){
+  const msg = document.getElementById("lg-msg");
+  msg.innerHTML = `<div class="msg info"><span class="spinner"></span> Memeriksa akun...</div>`;
+  const username = document.getElementById("lg-user").value.trim();
+  const password = document.getElementById("lg-pass").value;
+  if(!username || !password){ msg.innerHTML = `<div class="msg err">Username & password wajib diisi.</div>`; return; }
+  try{
+    const data = await api("login", {username, password, device: navigator.userAgent});
+    SESSION = data; // {token, username, fullName, role, jobTitle}
+    localStorage.setItem("cf_session", JSON.stringify(SESSION));
+    setUserBox();
+    renderHome();
+  }catch(e){
+    msg.innerHTML = `<div class="msg err">${e.message}</div>`;
+  }
+}
+
+function renderRegister(){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  app.appendChild(el(`
+  <div class="center-wrap">
+    <div class="card">
+      <h2>Buat Akun</h2>
+      <label>Nama Lengkap</label>
+      <input id="rg-name">
+      <label>Username</label>
+      <input id="rg-user">
+      <div class="grid2">
+        <div><label>Password</label><input id="rg-pass" type="password"></div>
+        <div><label>Ulangi Password</label><input id="rg-pass2" type="password"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Jabatan (Job Title)</label><input id="rg-job" placeholder="Furnace Engineer, dll"></div>
+        <div><label>Role Akses</label>
+          <select id="rg-role">
+            <option value="operator">Operator</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="superintendent">Superintendent</option>
+            <option value="engineer">Engineer</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:18px;">
+        <button class="btn" style="width:100%" onclick="handleRegister()">DAFTAR</button>
+      </div>
+      <div id="rg-msg"></div>
+      <div style="text-align:center;margin-top:16px;">
+        Sudah punya akun? <span class="linklike" onclick="renderLogin()">Kembali ke Login</span>
+      </div>
+    </div>
+  </div>`));
+}
+
+async function handleRegister(){
+  const msg = document.getElementById("rg-msg");
+  const fullName = document.getElementById("rg-name").value.trim();
+  const username = document.getElementById("rg-user").value.trim();
+  const password = document.getElementById("rg-pass").value;
+  const password2 = document.getElementById("rg-pass2").value;
+  const jobTitle = document.getElementById("rg-job").value.trim();
+  const role = document.getElementById("rg-role").value;
+  if(!fullName||!username||!password||!jobTitle){ msg.innerHTML=`<div class="msg err">Lengkapi semua field.</div>`; return; }
+  if(password !== password2){ msg.innerHTML=`<div class="msg err">Password tidak sama.</div>`; return; }
+  msg.innerHTML = `<div class="msg info"><span class="spinner"></span> Mengirim pendaftaran...</div>`;
+  try{
+    await api("register", {fullName, username, password, jobTitle, role});
+    msg.innerHTML = `<div class="msg ok">Pendaftaran terkirim. Akun berstatus <b>PENDING</b> menunggu persetujuan Admin/Engineer di Google Sheet. Silakan login setelah disetujui.</div>`;
+  }catch(e){
+    msg.innerHTML = `<div class="msg err">${e.message}</div>`;
+  }
+}
+
+/* ======================= HOME MENU ======================= */
+function renderHome(){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  app.appendChild(el(`
+    <div class="breadcrumb">Menu Utama</div>
+    <div class="menu-grid">
+      <div class="menu-tile" onclick="renderChecklistPicker()">
+        <div class="emoji">📋</div><h3>Checklist</h3>
+        <p>Isi checklist harian per shift (Skimming, Tapping, HMC)</p>
+      </div>
+      <div class="menu-tile" style="opacity:.55;cursor:not-allowed;" title="Segera hadir">
+        <div class="emoji">🗂️</div><h3>Record</h3>
+        <p>Segera hadir</p>
+      </div>
+    </div>
+  `));
+}
+
+const CHECKLIST_MENU = [
+  {key:"skimming", label:"Skimming", desc:"Daily Checklist Skimming System"},
+  {key:"tapping", label:"Tapping", desc:"Daily Checklist Tapping System"},
+  {key:"hmc", label:"HMC", desc:"Daily Checklist Hot Metal Crane"}
+];
+
+function renderChecklistPicker(){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  let items = CHECKLIST_MENU.map(c=>`
+    <div class="chk-item" onclick="openChecklistSetup('${c.key}')">
+      <div><div class="name">${c.label}</div><div class="sub">${c.desc}</div></div>
+      <div>➜</div>
+    </div>`).join("");
+  app.appendChild(el(`
+    <div class="breadcrumb"><span onclick="renderHome()">Menu Utama</span> / Checklist</div>
+    <h2>Pilih Checklist</h2>
+    <div class="chk-list">${items}</div>
+  `));
+}
+
+/* ======================= SETUP: TANGGAL / SHIFT / GROUP ======================= */
+function openChecklistSetup(key){
+  CURRENT.checklistKey = key;
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  const def = CHECKLIST_DATA[key];
+  app.appendChild(el(`
+    <div class="breadcrumb"><span onclick="renderHome()">Menu Utama</span> / <span onclick="renderChecklistPicker()">Checklist</span> / ${def.title}</div>
+    <h2>${def.title}</h2>
+    <div class="formbar">
+      <div class="fld"><label>Tanggal</label><input type="date" id="su-tanggal" value="${todayStr()}"></div>
+      <div class="fld"><label>Shift Kerja</label>
+        <select id="su-shift">${SHIFTS.map(s=>`<option value="${s.id}">${s.label}</option>`).join("")}</select>
+      </div>
+      <div class="fld"><label>Group</label>
+        <select id="su-group">${GROUPS.map(g=>`<option value="${g}">Group ${g}</option>`).join("")}</select>
+      </div>
+      <div class="fld" style="flex:0;">
+        <button class="btn" onclick="loadChecklistForm()">Buka Checklist</button>
+      </div>
+    </div>
+    <div id="su-status"></div>
+  `));
+}
+
+async function loadChecklistForm(){
+  const tanggal = document.getElementById("su-tanggal").value;
+  const shift = document.getElementById("su-shift").value;
+  const group = document.getElementById("su-group").value;
+  const statusBox = document.getElementById("su-status");
+  if(!tanggal){ statusBox.innerHTML = `<div class="msg err">Pilih tanggal terlebih dahulu.</div>`; return; }
+  CURRENT.tanggal = tanggal; CURRENT.shift = shift; CURRENT.group = group;
+  statusBox.innerHTML = `<div class="msg info"><span class="spinner"></span> Memuat data...</div>`;
+  try{
+    const rec = await api("getChecklist", {
+      checklistName: CURRENT.checklistKey, tanggal, shift, group
+    });
+    CURRENT.record = rec; // {found, status, dataJson, signatures, id, createdBy, finalizedBy, finalizedAt, ...} or {found:false}
+    renderChecklistForm();
+  }catch(e){
+    statusBox.innerHTML = `<div class="msg err">${e.message}</div>`;
+  }
+}
+
+/* ======================= CHECKLIST FORM ======================= */
+function canEditRole(){
+  return SESSION.role === "operator" || SESSION.role === "supervisor" || SESSION.role === "engineer";
+}
+function isLockedForMe(rec){
+  if(!rec || !rec.found) return false;
+  if(rec.status !== "Final") return false;
+  // Final: locked (hidden) for operator & supervisor; visible for superintendent & engineer
+  return (SESSION.role === "operator" || SESSION.role === "supervisor");
+}
+
+function renderChecklistForm(){
+  const app = document.getElementById("app");
+  const def = CHECKLIST_DATA[CURRENT.checklistKey];
+  const rec = CURRENT.record;
+  app.innerHTML = "";
+
+  const header = el(`
+    <div class="breadcrumb"><span onclick="renderHome()">Menu Utama</span> / <span onclick="renderChecklistPicker()">Checklist</span> / <span onclick="openChecklistSetup('${CURRENT.checklistKey}')">${def.title}</span> / Isi Form</div>
+    <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">v.${def.version}</small></h2>
+    <div class="formbar">
+      <div class="fld"><label>Tanggal</label><div><b>${CURRENT.tanggal}</b></div></div>
+      <div class="fld"><label>Shift</label><div><b>${SHIFTS.find(s=>s.id===CURRENT.shift).label}</b></div></div>
+      <div class="fld"><label>Group</label><div><b>Group ${CURRENT.group}</b></div></div>
+      <div class="fld"><label>Status</label><div><span class="status-badge ${rec && rec.found && rec.status==='Final' ? 'final':'draft'}">${rec && rec.found ? rec.status : 'BELUM ADA DATA'}</span></div></div>
+      <div class="fld" style="flex:0;"><button class="btn secondary" onclick="openChecklistSetup('${CURRENT.checklistKey}')">Ganti Tanggal/Shift/Group</button></div>
+    </div>
+  `);
+  app.appendChild(header);
+
+  if(isLockedForMe(rec)){
+    app.appendChild(el(`
+      <div class="locked-box">
+        <div class="big">🔒</div>
+        <h3>Laporan periode ini sudah FINAL</h3>
+        <p>Laporan untuk tanggal/shift/group ini sudah dikirim final oleh shift bertugas dan terkunci.<br>
+        Hubungi Engineer jika perlu perubahan.</p>
+      </div>
+    `));
+    return;
+  }
+
+  const readOnly = (SESSION.role === "superintendent") || (rec && rec.found && rec.status === "Final" && SESSION.role !== "engineer");
+  const isFinal = rec && rec.found && rec.status === "Final";
+
+  // build item rows grouped by kategori
+  const savedItems = (rec && rec.found && rec.dataJson) ? JSON.parse(rec.dataJson) : {};
+  const SLOTS = [{key:"awal", label:"Awal Shift"}, {key:"akhir", label:"Akhir Shift"}];
+  let lastKat = null;
+  let rows = "";
+  def.items.forEach((it, idx)=>{
+    if(it.kat !== lastKat){
+      rows += `<tr class="kat-row"><td colspan="7">${it.kat}</td></tr>`;
+      lastKat = it.kat;
+    }
+    const saved = savedItems[idx] || {};
+    const kodeBadges = it.kode.split("").map(k=>`<span class="kode-badge" title="${KODE_KETERANGAN[k]||k}">${k}</span>`).join(" ");
+    let slotCells = "";
+    SLOTS.forEach(slot=>{
+      const s = saved[slot.key] || {};
+      slotCells += `
+        <td>
+          <select class="hasil-sel ${(s.h||"").toLowerCase()}" data-idx="${idx}" data-slot="${slot.key}" onchange="onHasilChange(this)" ${readOnly?"disabled":""}>
+            <option value="" ${!s.h?"selected":""}>-</option>
+            <option value="V" ${s.h==="V"?"selected":""}>V (Normal)</option>
+            <option value="X" ${s.h==="X"?"selected":""}>X (Abnormal)</option>
+            <option value="O" ${s.h==="O"?"selected":""}>O (Tertangani)</option>
+          </select>
+        </td>
+        <td><input class="catatan-inp" data-idx="${idx}" data-slot="${slot.key}" placeholder="Catatan / penanganan" value="${(s.c||"").replace(/"/g,'&quot;')}" oninput="markDirty()" ${readOnly?"disabled":""}></td>`;
+    });
+    rows += `
+      <tr>
+        <td class="item-col">${it.pos ? `<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</td>
+        <td>${kodeBadges}</td>
+        <td class="std-col">${it.std || ""}</td>
+        ${slotCells}
+      </tr>`;
+  });
+
+  const table = el(`
+    <div class="legend">Kode metode pemeriksaan — <span class="kode-badge">V</span> Visual &nbsp; <span class="kode-badge">S</span> Suara &nbsp; <span class="kode-badge">T</span> Sentuh &nbsp; <span class="kode-badge">B</span> Bau &nbsp;|&nbsp; Hasil: V=Normal, X=Abnormal tidak tertangani, O=Abnormal tertangani</div>
+    <div style="overflow-x:auto;">
+    <table class="chk-table" id="chk-table">
+      <thead>
+        <tr>
+          <th rowspan="2">Item Pemeriksaan</th>
+          <th rowspan="2">Metode</th>
+          <th rowspan="2">Standar Pemeriksaan</th>
+          <th colspan="2" style="text-align:center;">Pemeriksaan Awal Shift</th>
+          <th colspan="2" style="text-align:center;">Pemeriksaan Akhir Shift</th>
+        </tr>
+        <tr>
+          <th>Hasil</th><th>Catatan / Penanganan</th>
+          <th>Hasil</th><th>Catatan / Penanganan</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>
+  `);
+  app.appendChild(table);
+
+  // signatures
+  const savedSig = (rec && rec.found && rec.signatures) ? JSON.parse(rec.signatures) : {};
+  app.appendChild(el(`<div class="sig-grid" id="sig-grid"></div>`));
+  const sigWrap = document.getElementById("sig-grid");
+  ["operator","supervisor","superintendent"].forEach(role=>{
+    const box = el(`
+      <div class="sig-box">
+        <h4>Tanda Tangan ${ROLE_LABEL[role]}</h4>
+        <div class="name">${savedSig[role]?.name || (SESSION.role===role ? SESSION.fullName : "-")}</div>
+        <canvas class="sig-pad" id="sig-${role}"></canvas>
+        <div class="sig-actions">
+          <button class="btn secondary" onclick="clearSig('${role}')" ${readOnly?"disabled":""}>Bersihkan</button>
+          <button class="btn ghost" onclick="setSigName('${role}')" ${readOnly?"disabled":""}>Isi Nama</button>
+        </div>
+      </div>`);
+    sigWrap.appendChild(box);
+  });
+
+  // savebar
+  const canSubmitFinal = !isFinal && canEditRole();
+  const canRevert = isFinal && SESSION.role === "engineer";
+  const canExportPdf = ["supervisor","superintendent","engineer"].includes(SESSION.role);
+  const savebar = el(`
+    <div class="savebar no-print">
+      <div class="autosave-note" id="autosaveNote">${readOnly && SESSION.role==="superintendent" ? "Mode lihat saja (Superintendent)" : ""}</div>
+      ${canExportPdf ? `<button class="btn secondary" onclick="window.print()">🖨️ Export PDF</button>` : ""}
+      ${!readOnly ? `<button class="btn secondary" onclick="saveDraft(true)">Simpan Draft</button>` : ""}
+      ${canSubmitFinal ? `<button class="btn" onclick="submitFinal()">✅ Kirim Laporan (Final)</button>` : ""}
+      ${canRevert ? `<button class="btn danger" onclick="revertToDraft()">↩️ Kembalikan ke Draft</button>` : ""}
+    </div>
+  `);
+  app.appendChild(savebar);
+
+  // init signature pads after DOM insert
+  setTimeout(()=>{
+    ["operator","supervisor","superintendent"].forEach(role=>{
+      initSigPad(role, savedSig[role]?.img);
+    });
+  },0);
+}
+
+function onHasilChange(sel){
+  sel.className = "hasil-sel " + sel.value.toLowerCase();
+  markDirty();
+}
+
+function markDirty(){
+  dirty = true;
+  const note = document.getElementById("autosaveNote");
+  if(note) note.textContent = "Ada perubahan belum tersimpan...";
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>saveDraft(false), 2500);
+}
+
+function collectFormData(){
+  const def = CHECKLIST_DATA[CURRENT.checklistKey];
+  const data = {};
+  const SLOT_KEYS = ["awal","akhir"];
+  def.items.forEach((it, idx)=>{
+    const entry = {};
+    let hasAny = false;
+    SLOT_KEYS.forEach(slot=>{
+      const hSel = document.querySelector(`.hasil-sel[data-idx="${idx}"][data-slot="${slot}"]`);
+      const cInp = document.querySelector(`.catatan-inp[data-idx="${idx}"][data-slot="${slot}"]`);
+      const h = hSel ? hSel.value : "";
+      const c = cInp ? cInp.value : "";
+      if(h || c){ entry[slot] = {h, c}; hasAny = true; }
+    });
+    if(hasAny) data[idx] = entry;
+  });
+  const signatures = {};
+  ["operator","supervisor","superintendent"].forEach(role=>{
+    const pad = CURRENT.sigPads[role];
+    if(pad){
+      signatures[role] = { name: pad.nameOverride || (document.querySelector(`#sig-${role}`).closest(".sig-box").querySelector(".name").textContent), img: pad.hasDrawing ? pad.canvas.toDataURL("image/png") : (pad.existingImg || "") };
+    }
+  });
+  return {dataJson: JSON.stringify(data), signatures: JSON.stringify(signatures)};
+}
+
+async function saveDraft(manual){
+  if(!canEditRoleOrEngineer()) return;
+  const note = document.getElementById("autosaveNote");
+  if(manual && note) note.innerHTML = `<span class="spinner"></span> Menyimpan...`;
+  const payload = Object.assign({
+    checklistName: CURRENT.checklistKey, tanggal: CURRENT.tanggal, shift: CURRENT.shift, group: CURRENT.group
+  }, collectFormData());
+  try{
+    const data = await api("saveDraft", payload);
+    CURRENT.record = data;
+    dirty = false;
+    if(note) note.textContent = "Tersimpan sebagai draft • " + new Date().toLocaleTimeString();
+    if(manual) refreshStatusBadge();
+  }catch(e){
+    if(note) note.innerHTML = `<span style="color:var(--bad)">Gagal menyimpan: ${e.message}</span>`;
+  }
+}
+function canEditRoleOrEngineer(){ return canEditRole(); }
+
+function refreshStatusBadge(){
+  renderChecklistForm();
+}
+
+async function submitFinal(){
+  if(!confirm("Kirim laporan sebagai FINAL? Setelah final, operator & supervisor tidak bisa mengubah/melihat lagi (kecuali dibuka kembali oleh Engineer).")) return;
+  const payload = Object.assign({
+    checklistName: CURRENT.checklistKey, tanggal: CURRENT.tanggal, shift: CURRENT.shift, group: CURRENT.group
+  }, collectFormData());
+  try{
+    const data = await api("submitFinal", payload);
+    CURRENT.record = data;
+    alert("Laporan berhasil dikirim sebagai FINAL.");
+    renderChecklistForm();
+  }catch(e){
+    alert("Gagal mengirim: " + e.message);
+  }
+}
+
+async function revertToDraft(){
+  if(!confirm("Kembalikan laporan ini menjadi DRAFT? Operator/Supervisor akan bisa mengedit kembali.")) return;
+  try{
+    const data = await api("setDraft", {id: CURRENT.record.id});
+    CURRENT.record = data;
+    alert("Laporan dikembalikan ke status DRAFT.");
+    renderChecklistForm();
+  }catch(e){
+    alert("Gagal: " + e.message);
+  }
+}
+
+/* ======================= SIGNATURE PAD ======================= */
+function initSigPad(role, existingImg){
+  const canvas = document.getElementById("sig-"+role);
+  if(!canvas) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(ratio, ratio);
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--text");
+  let drawing = false, hasDrawing = false;
+  const pad = { canvas, ctx, hasDrawing:false, existingImg: existingImg||"", nameOverride:null };
+  CURRENT.sigPads[role] = pad;
+
+  if(existingImg){
+    const img = new Image();
+    img.onload = ()=>{ ctx.drawImage(img,0,0,canvas.width/ratio,canvas.height/ratio); };
+    img.src = existingImg;
+  }
+
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    const p = e.touches ? e.touches[0] : e;
+    return {x: p.clientX - r.left, y: p.clientY - r.top};
+  }
+  function start(e){
+    if(canvas.disabled) return;
+    if(canvas.closest(".sig-box").querySelector("button").disabled) return;
+    drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault();
+  }
+  function move(e){
+    if(!drawing) return;
+    const p = pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); pad.hasDrawing = true; markDirty(); e.preventDefault();
+  }
+  function end(){ drawing = false; }
+  canvas.addEventListener("mousedown", start);
+  canvas.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", end);
+  canvas.addEventListener("touchstart", start);
+  canvas.addEventListener("touchmove", move);
+  canvas.addEventListener("touchend", end);
+}
+
+function clearSig(role){
+  const pad = CURRENT.sigPads[role];
+  if(!pad) return;
+  pad.ctx.clearRect(0,0,pad.canvas.width,pad.canvas.height);
+  pad.hasDrawing = false;
+  pad.existingImg = "";
+  markDirty();
+}
+
+function setSigName(role){
+  const nameEl = document.querySelector(`#sig-${role}`).closest(".sig-box").querySelector(".name");
+  const val = prompt("Nama "+ROLE_LABEL[role]+":", nameEl.textContent==="-" ? "" : nameEl.textContent);
+  if(val !== null){
+    nameEl.textContent = val;
+    CURRENT.sigPads[role].nameOverride = val;
+    markDirty();
+  }
+}
+
+/* ======================= WARN ON LEAVE IF DIRTY ======================= */
+window.addEventListener("beforeunload", function(e){
+  if(dirty){ e.preventDefault(); e.returnValue = ""; }
+});
+</script>
+</body>
+</html>
