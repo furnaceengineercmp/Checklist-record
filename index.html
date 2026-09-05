@@ -58,6 +58,11 @@ button.btn:disabled{opacity:.5;cursor:not-allowed;}
 .chk-item .sub{font-size:12px;color:var(--muted);}
 .breadcrumb{font-size:13px;color:var(--muted);margin-bottom:6px;}
 .breadcrumb span{cursor:pointer;color:var(--accent);}
+.crumb-bar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.crumb-btn{background:var(--panel);border:1px solid var(--border);color:var(--accent);padding:7px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);}
+.crumb-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.crumb-current{padding:7px 14px;font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);border-radius:20px;}
+.crumb-sep{color:var(--muted);font-size:13px;}
 .formbar{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:16px;}
 .formbar .fld{min-width:150px;flex:1;}
 .formbar label{margin:0 0 5px;}
@@ -152,6 +157,20 @@ function el(html){
   return t.content;
 }
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+
+// Renders a row of pill-shaped BUTTONS instead of a plain "a / b / c" text
+// breadcrumb. `steps` is an array of {label, fn}; the LAST step should
+// have no `fn` (rendered as the current, non-clickable step).
+function crumbBar(steps){
+  const parts = steps.map((s,i)=>{
+    const isLast = i === steps.length-1;
+    if(!s.fn || isLast){
+      return `<span class="crumb-current">${s.label}</span>`;
+    }
+    return `<button class="crumb-btn" onclick="${s.fn}">${s.label}</button>`;
+  });
+  return `<div class="crumb-bar no-print">${parts.join('<span class="crumb-sep">›</span>')}</div>`;
+}
 function toggleTheme(){
   const b=document.body;
   const cur = b.getAttribute("data-theme")==="dark"?"light":"dark";
@@ -307,7 +326,7 @@ function renderHome(){
   const app = document.getElementById("app");
   app.innerHTML = "";
   app.appendChild(el(`
-    <div class="breadcrumb">Menu Utama</div>
+    ${crumbBar([{label:"🏠 Menu Utama"}])}
     <div class="menu-grid">
       <div class="menu-tile" onclick="renderChecklistPicker()">
         <div class="emoji">📋</div><h3>Checklist</h3>
@@ -336,7 +355,7 @@ function renderChecklistPicker(){
       <div>➜</div>
     </div>`).join("");
   app.appendChild(el(`
-    <div class="breadcrumb"><span onclick="renderHome()">Menu Utama</span> / Checklist</div>
+    ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist"}])}
     <h2>Pilih Checklist</h2>
     <div class="chk-list">${items}</div>
   `));
@@ -349,7 +368,7 @@ function openChecklistSetup(key){
   app.innerHTML = "";
   const def = CHECKLIST_DATA[key];
   app.appendChild(el(`
-    <div class="breadcrumb"><span onclick="renderHome()">Menu Utama</span> / <span onclick="renderChecklistPicker()">Checklist</span> / ${def.title}</div>
+    ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist", fn:"renderChecklistPicker()"}, {label:def.title}])}
     <h2>${def.title}</h2>
     <div class="formbar">
       <div class="fld"><label>Tanggal</label><input type="date" id="su-tanggal" value="${todayStr()}"></div>
@@ -404,7 +423,7 @@ function renderChecklistForm(){
   app.innerHTML = "";
 
   const header = el(`
-    <div class="breadcrumb"><span onclick="renderHome()">Menu Utama</span> / <span onclick="renderChecklistPicker()">Checklist</span> / <span onclick="openChecklistSetup('${CURRENT.checklistKey}')">${def.title}</span> / Isi Form</div>
+    ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist", fn:"renderChecklistPicker()"}, {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
     <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">v.${def.version}</small></h2>
     <div class="formbar">
       <div class="fld"><label>Tanggal</label><div><b>${CURRENT.tanggal}</b></div></div>
