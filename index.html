@@ -156,7 +156,20 @@ function el(html){
   t.innerHTML = html.trim();
   return t.content;
 }
-function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+// Formats a Date object as a plain yyyy-mm-dd string using its LOCAL
+// calendar date (year/month/day as the browser's timezone sees them) -
+// deliberately NEVER via toISOString(), which converts to UTC first and
+// silently rolls the date back a day for anyone in a positive UTC offset
+// (e.g. Asia/Jakarta, UTC+7) whenever the local time is near midnight.
+// That mismatch was the root cause of "Tanggal 7 Pagi doesn't show the
+// handover note from Tanggal 6 Malam" - see prevShiftKey() below.
+function localDateStr(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function todayStr(){ return localDateStr(new Date()); }
 
 // Renders a row of pill-shaped BUTTONS instead of a plain "a / b / c" text
 // breadcrumb. `steps` is an array of {label, fn}; the LAST step should
@@ -440,10 +453,12 @@ function onGroupChange(newGroup){
 function prevShiftKey(tanggal, shift){
   if(shift === "Siang") return {tanggal, shift:"Pagi"};
   if(shift === "Malam") return {tanggal, shift:"Siang"};
-  // Pagi -> previous day's Malam
+  // Pagi -> previous day's Malam. Parsed and re-formatted purely in LOCAL
+  // time via localDateStr() (never toISOString()) - see its comment above
+  // for why that matters here specifically.
   const d = new Date(tanggal + "T00:00:00");
   d.setDate(d.getDate() - 1);
-  return {tanggal: d.toISOString().slice(0,10), shift:"Malam"};
+  return {tanggal: localDateStr(d), shift:"Malam"};
 }
 
 async function loadPrevShiftHandover(){
@@ -828,7 +843,13 @@ function initSigPad(role, existingImg){
   ctx.scale(ratio, ratio);
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
-  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--text");
+  // Always draw the actual signature stroke in solid black, regardless of
+  // the app's light/dark theme. --text is whatever color is readable on
+  // THIS screen (often a light gray/white in dark mode) - using it here
+  // meant every signature saved in dark mode came out as a barely-visible
+  // gray squiggle once exported onto the white "Form Fisik" sheet. A real
+  // signature needs to look like ink on paper independent of UI theme.
+  ctx.strokeStyle = "#000000";
   let drawing = false, hasDrawing = false;
   const pad = { canvas, ctx, hasDrawing:false, existingImg: existingImg||"", nameOverride:null };
   CURRENT.sigPads[role] = pad;
