@@ -130,7 +130,7 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 const API_URL = "https://script.google.com/macros/s/AKfycbxnppoW1tZBUvCbi47mtE9mLSLc4ERny_r6cspofc_RMxqEGMLjdIRtGDQN1TWnV2o/exec";
 
 /* ======================= CHECKLIST DEFINITIONS ======================= */
-const CHECKLIST_DATA = {"skimming": {"title": "Skimming", "version": "2025 11 18", "items": [{"kat": "Stasiun Hidrolik", "item": "Housing Pompa", "kode": "VS", "std": "Suara halus dan tidak ada kebocoran", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari saluran masuk maupun keluar", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Level & Temperatur Oli", "kode": "V", "std": "Level oli di atas 1/2,\nTemperatur oli ≤50°C", "pos": "Tangki Oli"}, {"kat": "Stasiun Hidrolik", "item": "Tekanan", "kode": "V", "std": "Sesuai standar (11-12 MPa)", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Valve", "kode": "VT", "std": "Mudah diputar dan tidak macet", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Kondisi bagus, tidak ada kebocoran oli", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Sambungan Pipa & Selang", "kode": "V", "std": "Tidak longgar dan tidak ada kebocoran oli", "pos": "Sistem Auxiliary"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Mudgun", "kode": "VST", "std": "Test swing & posisikan di depan hole", "pos": "Handle Control Mudgun"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Drill", "kode": "VST", "std": "Test swing & posisikan drill maju / mundur", "pos": "Handle Control Drill"}, {"kat": "Mud/Clay Gun", "item": "Silinder Mud/Clay & Pipa Oli", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Tabung Mud/Clay & Parts Ekstension", "kode": "V", "std": "Tidak ada deformasi", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Plat Pengaman dan Penarik", "kode": "V", "std": "Tidak ada deformasi, kelonggaran maupun las-lasan terbuka", "pos": "Plat Pengaman dan Penarik"}, {"kat": "Mud/Clay Gun", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Putaran", "kode": "V", "std": "Pengoperasian stabil, tidak macet", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari sambungan", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Motor \nMaju & Mundur", "kode": "V", "std": "Tidak macet", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa Oli \nRantai Penarikan", "kode": "V", "std": "Tidak ada deformasi dan kebocoran oli", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa & Sambungan", "kode": "V", "std": "Tidak ada keretakan, sealing normal", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Rantai", "kode": "V", "std": "Baut tidak kendor maupun macet", "pos": "Part Transmisi"}, {"kat": "Launder", "item": "Kondisi Cover Plate", "kode": "VT", "std": "Kondisi baik, diperbaiki dengan green clay apabila diperlukan", "pos": "Cover Plate"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bowl bagus, tidak ada kerusakan, ramming kondisi baik", "pos": "Launder atas hingga tengah"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan", "pos": "Launder bagian ujung"}, {"kat": "Launder", "item": "Wet Launder", "kode": "V", "std": "Kondisi wet launder dalam keadaan baik, water granulation berfungsi baik", "pos": "Wet Launder"}, {"kat": "Safety", "item": "Aluminized Suit", "kode": "VT", "std": "Aluminized suit (hood, baju, celana, spat, glove) tersedia untuk digunakan", "pos": "Aluminized Suit"}, {"kat": "Safety", "item": "Face Shield", "kode": "V", "std": "Face shield tersedia untuk digunakan", "pos": "Face Shield"}, {"kat": "Safety", "item": "Gloves Tahan Panas", "kode": "VT", "std": "Gloves tersedia untuk digunakan", "pos": "Gloves Tahan Panas"}, {"kat": "Safety", "item": "APAR / Fire Extinguisher", "kode": "VT", "std": "Tersedia APAR dry powder (cek tekanan-nya)", "pos": "APAR"}, {"kat": "Safety", "item": "On-Site Gas Analyzer", "kode": "V", "std": "Gas analyzer CO berfungsi", "pos": "CO Analyzer"}, {"kat": "Peralatan Penunjang", "item": "Pipe Lancing", "kode": "V", "std": "Pipa lancing tersedia & siap digunakan", "pos": "Pipe Lancing"}, {"kat": "Peralatan Penunjang", "item": "Connector", "kode": "VT", "std": "Connector & hose tersambung ke sumber oxygen dengan kondisi baik", "pos": "Connector"}, {"kat": "Peralatan Penunjang", "item": "Pencungkil Build Up", "kode": "V", "std": "Pencungkil & peralatan penunjang lainnya tersedia & siap digunakan", "pos": "Pencungkil Build Up"}, {"kat": "Peralatan Penunjang", "item": "Sendok & Cetakan Sample", "kode": "VT", "std": "Sendok & cetakan sampel tersedia, diberi kapur / ramming, & sudah dipanaskan", "pos": "Sendok & Cetakan Sample"}, {"kat": "Peralatan Penunjang", "item": "Temp Tip & Rod", "kode": "V", "std": "Temp rod berfungsi & stok temp tip tersedia di area", "pos": "Temp Tip & Rod"}, {"kat": "Peralatan Penunjang", "item": "Emergency Plug", "kode": "V", "std": "Emergency plug tersedia di area untuk kondisi emergency", "pos": "Emergency Plug & Palu 5 kg"}, {"kat": "Peralatan Penunjang", "item": "Oven Body & Temp Controller", "kode": "VT", "std": "Oven berfungsi dengan baik, temp 80-100 C", "pos": "Oven"}, {"kat": "Peralatan Penunjang", "item": "Lampu di sebelah Utara & Selatan", "kode": "V", "std": "Lampu berfungsi dengan baik", "pos": "Lampu Penerangan"}, {"kat": "Peralatan Penunjang", "item": "Exhaust Hood Utara & Selatan", "kode": "VT", "std": "Exhaust (HVAC system) bekerja dengan baik", "pos": "Exhaust Hood"}, {"kat": "Peralatan Penunjang", "item": "Blower Cooling Fan", "kode": "V", "std": "Blower tersedia & berfungsi dengan baik", "pos": "Blower Fan"}, {"kat": "Materials", "item": "Clay Mudgun", "kode": "V", "std": "Clay tersedia di area skimming & siap digunakan (sudah di oven)", "pos": "Clay Mudgun"}, {"kat": "Materials", "item": "Oxygen Source", "kode": "V", "std": "Sumber oxygen tersedia dengan minimal press 1 Mpa", "pos": "Oxygen Source"}, {"kat": "Materials", "item": "Pasir Kuning, Sekam Padi, Kapur", "kode": "V", "std": "Pasir, sekam padi, kapur tersedia di bagian Utara maupun Selatan launder", "pos": "Pasir Kuning, Sekam Padi, Kapur"}, {"kat": "Materials", "item": "Ramming Material", "kode": "V", "std": "Ramming material tersedia di area untuk service launder", "pos": "Ramming Material"}, {"kat": "Coordination", "item": "Koordinasi CCR, Water Checker, & Clamshell", "kode": "V", "std": "Memastikan kesiapan area downstream untuk memproses slag yang di granulasi", "pos": "Koordinasi Fokker Base"}]}, "tapping": {"title": "Tapping", "version": "2025 10 18", "items": [{"kat": "Stasiun Hidrolik", "item": "Housing Pompa", "kode": "VS", "std": "Suara halus & tidak ada kebocoran", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari saluran masuk maupun keluar", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Level & Temperatur Oli", "kode": "V", "std": "Level oli di atas 1/2, Temperatur oli ≤ 50°C", "pos": "Tangki Oli"}, {"kat": "Stasiun Hidrolik", "item": "Tekanan", "kode": "V", "std": "Sesuai standar (11-12 MPa)", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Valve", "kode": "VT", "std": "Mudah diputar & tidak macet", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Kondisi bagus, tidak ada kebocoran oli", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Sambungan Pipa & Selang", "kode": "V", "std": "Tidak longgar & tidak ada kebocoran oli", "pos": "Sistem Auxiliary"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Mudgun", "kode": "VST", "std": "Test swing & posisikan di depan tapping hole", "pos": "Handle Control Mudgun"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Drill", "kode": "VST", "std": "Test swing & posisikan drill maju / mundur", "pos": "Handle Control Drill"}, {"kat": "Mud/Clay Gun", "item": "Silinder Mud/Clay & Pipa Oli", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Tabung Mud/Clay & Parts Ekstension", "kode": "V", "std": "Tidak ada deformasi", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Plat Pengaman & Penarik", "kode": "V", "std": "Tidak ada deformasi, kelonggaran maupun las-lasan terbuka", "pos": "Plat Pengaman & Penarik"}, {"kat": "Mud/Clay Gun", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Kondisi Drill Bit & Rod", "kode": "VT", "std": "Drill dalam kondisi baik, pastikan stok tersedia apabila perlu diganti", "pos": "Drill Bit & Rod"}, {"kat": "Mesin Drill", "item": "Putaran", "kode": "V", "std": "Pengoperasian stabil, tidak macet", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari sambungan", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Motor Maju & Mundur", "kode": "V", "std": "Tidak macet", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa Oli & Rantai Penarikan", "kode": "V", "std": "Tidak ada deformasi & kebocoran oli", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa & Sambungan", "kode": "V", "std": "Tidak ada keretakan, sealing normal", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Rantai", "kode": "V", "std": "Baut tidak kendor maupun macet", "pos": "Part Transmisi"}, {"kat": "Launder", "item": "Kondisi Cover Plate", "kode": "VT", "std": "Kondisi baik, diperbaiki dengan green clay apabila diperlukan", "pos": "Cover Plate"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan, ramming kondisi baik", "pos": "Launder atas hingga tengah"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan", "pos": "Launder bagian ujung"}, {"kat": "Launder", "item": "Heating Up Launder", "kode": "V", "std": "Launder dipanaskan pastikan tidak ada air & minimalisir heat loss", "pos": "Heating Up Launder"}, {"kat": "Ladle ", "item": "Kondisi Ladle", "kode": "V", "std": "Ladle telah dipanaskan (temp shell ladle > 200 C) & tidak ada air didalam ladle", "pos": "Kondisi Ladle"}, {"kat": "Ladle ", "item": "Posisi Ladle ", "kode": "V", "std": "Posisi tepat di bawah ujung launder & \"mulut\" menghadap Timur", "pos": "Posisi"}, {"kat": "Safety", "item": "Aluminized Suit", "kode": "VT", "std": "Aluminized suit (hood, baju, celana, spat, glove) tersedia untuk digunakan", "pos": "Aluminized Suit"}, {"kat": "Safety", "item": "Face Shield", "kode": "V", "std": "Face shield tersedia untuk digunakan", "pos": "Face Shield"}, {"kat": "Safety", "item": "Gloves Tahan Panas", "kode": "VT", "std": "Gloves tersedia untuk digunakan", "pos": "Gloves Tahan Panas"}, {"kat": "Safety", "item": "APAR / Fire Extinguisher", "kode": "VT", "std": "Tersedia APAR dry powder (cek tekanan-nya)", "pos": "APAR"}, {"kat": "Peralatan Penunjang", "item": "Pipe Lancing", "kode": "V", "std": "Pipa lancing tersedia & siap digunakan", "pos": "Pipe Lancing"}, {"kat": "Peralatan Penunjang", "item": "Connector", "kode": "VT", "std": "Connector & hose tersambung ke sumber oxygen dengan kondisi baik", "pos": "Connector"}, {"kat": "Peralatan Penunjang", "item": "Pencungkil Build Up", "kode": "V", "std": "Pencungkil & peralatan penunjang lainnya tersedia & siap digunakan", "pos": "Pencungkil Build Up"}, {"kat": "Peralatan Penunjang", "item": "Sendok & Cetakan Sample", "kode": "VT", "std": "Sendok & cetakan sampel tersedia, diberi kapur / ramming, & sudah dipanaskan", "pos": "Sendok & Cetakan Sample"}, {"kat": "Peralatan Penunjang", "item": "Temp Tip & Rod", "kode": "V", "std": "Temp rod berfungsi & stok temp tip tersedia di area tapping", "pos": "Temp Tip & Rod"}, {"kat": "Peralatan Penunjang", "item": "Emergency Plug", "kode": "V", "std": "Emergency plug tersedia di area tapping untuk kondisi emergency", "pos": "Emergency Plug & Palu 5 kg"}, {"kat": "Peralatan Penunjang", "item": "Oven Body & Temp Controller", "kode": "VT", "std": "Oven berfungsi dengan baik, temp 80-100 C", "pos": "Oven"}, {"kat": "Materials", "item": "Clay Mudgun", "kode": "V", "std": "Clay tersedia di area tapping & siap digunakan (sudah di oven)", "pos": "Clay Mudgun"}, {"kat": "Materials", "item": "Oxygen Source", "kode": "V", "std": "Sumber oxygen tersedia dengan minimal press 1 Mpa", "pos": "Oxygen Source"}, {"kat": "Materials", "item": "Pasir Kuning, Sekam Padi, Kapur", "kode": "V", "std": "Pasir, sekam padi, kapur tersedia di bagian Utara maupun Selatan launder tapping", "pos": "Pasir Kuning, Sekam Padi, Kapur"}, {"kat": "Materials", "item": "Ramming Material", "kode": "V", "std": "Ramming material tersedia di area tapping untuk service launder", "pos": "Ramming Material"}, {"kat": "Coordination", "item": "Koordinasi HMC & Shotting", "kode": "V", "std": "Memastikan kesiapan area downstream untuk memproses FeNi yang di tapping", "pos": "Koordinasi HMC & Shotting"}]}, "hmc": {"title": "Hot Metal Crane (HMC)", "version": "2026 01 30", "items": [{"kat": "Main Hoist", "item": "Fungsi kontrol main hoist", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hoist naik turun/turun gerak halus tanpa hentakan"}, {"kat": "Main Hoist", "item": "Fungsi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, limit switch hoist memutus arus saat posisi atas/bawah tercapai"}, {"kat": "Main Hoist", "item": "Fungsi lower limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, limit switch hoist memutus arus saat posisi atas/bawah tercapai"}, {"kat": "Main Hoist", "item": "Drum hoist", "kode": "V", "std": "Drum hoist alur bersih,tanpa kerusakan"}, {"kat": "Main Hoist", "item": "Bearing dan gear box", "kode": "V", "std": "Bearing dan gear box pelumasan cukup, tidak bocor oli/grease"}, {"kat": "Main Hoist", "item": "Kondisi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Kondisi wire rope", "kode": "V", "std": "Tidak ada abnormality, wire rope utama tidak ada kawat putus, tidak kusut, tidak korosi"}, {"kat": "Main Hoist", "item": "Kondisi shaft pulley", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Kondisi bale Utara", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hook / block hook tidak retak"}, {"kat": "Main Hoist", "item": "Kondisi bale Selatan", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hook / block hook tidak retak"}, {"kat": "Main Hoist", "item": "Kondisi lock pin bale", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Sistem Pengereman", "kode": "V", "std": "Sistem rem utama respon cepat, tidak slip, sistem pengereman berhenti tepat saat kontrol di lepas"}, {"kat": "Main Hoist", "item": "Rem darurat", "kode": "V", "std": "Rem darurat aktif saat pengujian"}, {"kat": "Aux Hoist", "item": "Auxilliary", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi lower limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi power limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Kondisi wire rope", "kode": "V", "std": "Tidak ada abnormality, wire rope utama tidak ada kawat putus, tidak kusut, tidak korosi"}, {"kat": "Aux Hoist", "item": "Kondisi hook lock", "kode": "V", "std": "Kondisi hook & safety latch tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Fungsi kontrol bridge", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, bridge travel pergerakan stabil, tidak ada suara abnormal, bridge kiri/ kanan gerak lancar tidak bergetar"}, {"kat": "Bridge", "item": "Fungsi rem", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Kondisi shaft drive", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Stop block", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Fungsi kontrol trolly", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, trolly travel pergerakan halus, tidak tersendat, trolly maju/ mundur gerak stabil tidak melenceng"}, {"kat": "Trolly", "item": "Kondisi safety wood", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Stop block", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Saklar utama", "kode": "V", "std": "Saklar utama berfungsi dan tidak longgar"}, {"kat": "Trolly", "item": "Lampu indikator", "kode": "V", "std": "Lampu indikator dan display menyala normal"}, {"kat": "Trolly", "item": "Limit switch hoist", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Limit switch troley", "kode": "V", "std": "Limit swicth trolly dan bridge memutus arus saat batas tercapai"}, {"kat": "Trolly", "item": "Kabel daya", "kode": "V", "std": "Kabel daya dan kontrol tidak terkelupas,tidak longgar"}, {"kat": "Trolly", "item": "Emergency stop", "kode": "V", "std": "Emergensi stop memutus arus saat di tekan"}, {"kat": "Cabin Operator", "item": "Fungsi tombol power kontrol", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, panel kontrol bersih, bebas debu dan air, pintu terkunci"}, {"kat": "Cabin Operator", "item": "Panel monitor", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Display timbangan", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi camera", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Monitor camera", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi AC", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi radio", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi horn", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi kaca kabin", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi tempat duduk", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi tangga", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, tangga & platform kerja tidak licin, railing kokoh"}, {"kat": "Pemeriksaan Struktur", "item": "Girder", "kode": "V", "std": "Main girder dan end carriage tidak ada retakan,deformasi,atau karat parah"}, {"kat": "Pemeriksaan Struktur", "item": "Sambungan & las baut", "kode": "V", "std": "Sambungan dan las baut kencang las utuh"}, {"kat": "Pemeriksaan Struktur", "item": "Rel crane", "kode": "V", "std": "Rel crane dan roda tidak aus berlebihan,bebas dari halangan/debu tebal"}, {"kat": "Sistem Keselamatan", "item": "Alarm / Horn / Lampu / Sirene Peringatan", "kode": "VS", "std": "Alarm dan horn bunyi jelas, alarm dan lampu aktif saat operasi menyala otomatis, sirene peringatan beban panas aktif saat angkat beban"}, {"kat": "Sistem Keselamatan", "item": "Botol pemadam (APAR)", "kode": "V", "std": "APAR (pemadam) tekanan normal, tidak kadaluarsa"}, {"kat": "Sistem Keselamatan", "item": "Jalur evakuasi", "kode": "V", "std": "Jalur evakuasi aman, bebas hambatan"}]}};
+const CHECKLIST_DATA = {"skimming": {"title": "Skimming", "version": "2025 11 18", "items": [{"kat": "Stasiun Hidrolik", "item": "Housing Pompa", "kode": "VS", "std": "Suara halus dan tidak ada kebocoran", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari saluran masuk maupun keluar", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Level & Temperatur Oli", "kode": "V", "std": "Level oli di atas 1/2,\nTemperatur oli ≤50°C", "pos": "Tangki Oli"}, {"kat": "Stasiun Hidrolik", "item": "Tekanan", "kode": "V", "std": "Sesuai standar (11-12 MPa)", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Valve", "kode": "VT", "std": "Mudah diputar dan tidak macet", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Kondisi bagus, tidak ada kebocoran oli", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Sambungan Pipa & Selang", "kode": "V", "std": "Tidak longgar dan tidak ada kebocoran oli", "pos": "Sistem Auxiliary"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Mudgun", "kode": "VST", "std": "Test swing & posisikan di depan hole", "pos": "Handle Control Mudgun"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Drill", "kode": "VST", "std": "Test swing & posisikan drill maju / mundur", "pos": "Handle Control Drill"}, {"kat": "Mud/Clay Gun", "item": "Silinder Mud/Clay & Pipa Oli", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Tabung Mud/Clay & Parts Ekstension", "kode": "V", "std": "Tidak ada deformasi", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Plat Pengaman dan Penarik", "kode": "V", "std": "Tidak ada deformasi, kelonggaran maupun las-lasan terbuka", "pos": "Plat Pengaman dan Penarik"}, {"kat": "Mud/Clay Gun", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Putaran", "kode": "V", "std": "Pengoperasian stabil, tidak macet", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari sambungan", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet dan tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Motor \nMaju & Mundur", "kode": "V", "std": "Tidak macet", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa Oli \nRantai Penarikan", "kode": "V", "std": "Tidak ada deformasi dan kebocoran oli", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa & Sambungan", "kode": "V", "std": "Tidak ada keretakan, sealing normal", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Rantai", "kode": "V", "std": "Baut tidak kendor maupun macet", "pos": "Part Transmisi"}, {"kat": "Launder", "item": "Kondisi Cover Plate", "kode": "VT", "std": "Kondisi baik, diperbaiki dengan green clay apabila diperlukan", "pos": "Cover Plate"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bowl bagus, tidak ada kerusakan, ramming kondisi baik", "pos": "Launder atas hingga tengah"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan", "pos": "Launder bagian ujung"}, {"kat": "Launder", "item": "Wet Launder", "kode": "V", "std": "Kondisi wet launder dalam keadaan baik, water granulation berfungsi baik", "pos": "Wet Launder"}, {"kat": "Safety", "item": "Aluminized Suit", "kode": "VT", "std": "Aluminized suit (hood, baju, celana, spat, glove) tersedia untuk digunakan", "pos": "Aluminized Suit"}, {"kat": "Safety", "item": "Face Shield", "kode": "V", "std": "Face shield tersedia untuk digunakan", "pos": "Face Shield"}, {"kat": "Safety", "item": "Gloves Tahan Panas", "kode": "VT", "std": "Gloves tersedia untuk digunakan", "pos": "Gloves Tahan Panas"}, {"kat": "Safety", "item": "APAR / Fire Extinguisher", "kode": "VT", "std": "Tersedia APAR dry powder (cek tekanan-nya)", "pos": "APAR"}, {"kat": "Safety", "item": "On-Site Gas Analyzer", "kode": "V", "std": "Gas analyzer CO berfungsi", "pos": "CO Analyzer"}, {"kat": "Peralatan Penunjang", "item": "Pipe Lancing", "kode": "V", "std": "Pipa lancing tersedia & siap digunakan", "pos": "Pipe Lancing"}, {"kat": "Peralatan Penunjang", "item": "Connector", "kode": "VT", "std": "Connector & hose tersambung ke sumber oxygen dengan kondisi baik", "pos": "Connector"}, {"kat": "Peralatan Penunjang", "item": "Pencungkil Build Up", "kode": "V", "std": "Pencungkil & peralatan penunjang lainnya tersedia & siap digunakan", "pos": "Pencungkil Build Up"}, {"kat": "Peralatan Penunjang", "item": "Sendok & Cetakan Sample", "kode": "VT", "std": "Sendok & cetakan sampel tersedia, diberi kapur / ramming, & sudah dipanaskan", "pos": "Sendok & Cetakan Sample"}, {"kat": "Peralatan Penunjang", "item": "Temp Tip & Rod", "kode": "V", "std": "Temp rod berfungsi & stok temp tip tersedia di area", "pos": "Temp Tip & Rod"}, {"kat": "Peralatan Penunjang", "item": "Emergency Plug", "kode": "V", "std": "Emergency plug tersedia di area untuk kondisi emergency", "pos": "Emergency Plug & Palu 5 kg"}, {"kat": "Peralatan Penunjang", "item": "Oven Body & Temp Controller", "kode": "VT", "std": "Oven berfungsi dengan baik, temp 80-100 C", "pos": "Oven"}, {"kat": "Peralatan Penunjang", "item": "Lampu di sebelah Utara & Selatan", "kode": "V", "std": "Lampu berfungsi dengan baik", "pos": "Lampu Penerangan"}, {"kat": "Peralatan Penunjang", "item": "Exhaust Hood Utara & Selatan", "kode": "VT", "std": "Exhaust (HVAC system) bekerja dengan baik", "pos": "Exhaust Hood"}, {"kat": "Peralatan Penunjang", "item": "Blower Cooling Fan", "kode": "V", "std": "Blower tersedia & berfungsi dengan baik", "pos": "Blower Fan"}, {"kat": "Materials", "item": "Clay Mudgun", "kode": "V", "std": "Clay tersedia di area skimming & siap digunakan (sudah di oven)", "pos": "Clay Mudgun"}, {"kat": "Materials", "item": "Oxygen Source", "kode": "V", "std": "Sumber oxygen tersedia dengan minimal press 1 Mpa", "pos": "Oxygen Source"}, {"kat": "Materials", "item": "Pasir Kuning, Sekam Padi, Kapur", "kode": "V", "std": "Pasir, sekam padi, kapur tersedia di bagian Utara maupun Selatan launder", "pos": "Pasir Kuning, Sekam Padi, Kapur"}, {"kat": "Materials", "item": "Ramming Material", "kode": "V", "std": "Ramming material tersedia di area untuk service launder", "pos": "Ramming Material"}, {"kat": "Coordination", "item": "Koordinasi CCR, Water Checker, & Clamshell", "kode": "V", "std": "Memastikan kesiapan area downstream untuk memproses slag yang di granulasi", "pos": "Koordinasi Fokker Base"}]}, "tapping": {"title": "Tapping", "version": "2025 10 18", "items": [{"kat": "Stasiun Hidrolik", "item": "Housing Pompa", "kode": "VS", "std": "Suara halus & tidak ada kebocoran", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari saluran masuk maupun keluar", "pos": "Pompa Oli"}, {"kat": "Stasiun Hidrolik", "item": "Level & Temperatur Oli", "kode": "V", "std": "Level oli di atas 1/2, Temperatur oli ≤ 50°C", "pos": "Tangki Oli"}, {"kat": "Stasiun Hidrolik", "item": "Tekanan", "kode": "V", "std": "Sesuai standar (11-12 MPa)", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Valve", "kode": "VT", "std": "Mudah diputar & tidak macet", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Kebocoran Oli", "kode": "V", "std": "Kondisi bagus, tidak ada kebocoran oli", "pos": "Sistem Hidrolik"}, {"kat": "Stasiun Hidrolik", "item": "Sambungan Pipa & Selang", "kode": "V", "std": "Tidak longgar & tidak ada kebocoran oli", "pos": "Sistem Auxiliary"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Mudgun", "kode": "VST", "std": "Test swing & posisikan di depan tapping hole", "pos": "Handle Control Mudgun"}, {"kat": "Handle Control / Solenoid", "item": "Test Pergerakan Drill", "kode": "VST", "std": "Test swing & posisikan drill maju / mundur", "pos": "Handle Control Drill"}, {"kat": "Mud/Clay Gun", "item": "Silinder Mud/Clay & Pipa Oli", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Tabung Mud/Clay & Parts Ekstension", "kode": "V", "std": "Tidak ada deformasi", "pos": "Mekanisme Pemompaan Mud/Clay"}, {"kat": "Mud/Clay Gun", "item": "Plat Pengaman & Penarik", "kode": "V", "std": "Tidak ada deformasi, kelonggaran maupun las-lasan terbuka", "pos": "Plat Pengaman & Penarik"}, {"kat": "Mud/Clay Gun", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Kondisi Drill Bit & Rod", "kode": "VT", "std": "Drill dalam kondisi baik, pastikan stok tersedia apabila perlu diganti", "pos": "Drill Bit & Rod"}, {"kat": "Mesin Drill", "item": "Putaran", "kode": "V", "std": "Pengoperasian stabil, tidak macet", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Kebocoran Oli", "kode": "V", "std": "Tidak ada kebocoran oli dari sambungan", "pos": "Mekanisme Perputaran"}, {"kat": "Mesin Drill", "item": "Silinder Pengangkatan", "kode": "V", "std": "Pengoperasian stabil, tidak macet & tidak ada kebocoran oli", "pos": "Mekanisme Pengangkatan"}, {"kat": "Mesin Drill", "item": "Motor Maju & Mundur", "kode": "V", "std": "Tidak macet", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa Oli & Rantai Penarikan", "kode": "V", "std": "Tidak ada deformasi & kebocoran oli", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Pipa & Sambungan", "kode": "V", "std": "Tidak ada keretakan, sealing normal", "pos": "Trolley Perpindahan"}, {"kat": "Mesin Drill", "item": "Rantai", "kode": "V", "std": "Baut tidak kendor maupun macet", "pos": "Part Transmisi"}, {"kat": "Launder", "item": "Kondisi Cover Plate", "kode": "VT", "std": "Kondisi baik, diperbaiki dengan green clay apabila diperlukan", "pos": "Cover Plate"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan, ramming kondisi baik", "pos": "Launder atas hingga tengah"}, {"kat": "Launder", "item": "Kondisi Launder", "kode": "V", "std": "Kondisi bagus, tidak ada kerusakan", "pos": "Launder bagian ujung"}, {"kat": "Launder", "item": "Heating Up Launder", "kode": "V", "std": "Launder dipanaskan pastikan tidak ada air & minimalisir heat loss", "pos": "Heating Up Launder"}, {"kat": "Ladle ", "item": "Kondisi Ladle", "kode": "V", "std": "Ladle telah dipanaskan (temp shell ladle > 200 C) & tidak ada air didalam ladle", "pos": "Kondisi Ladle"}, {"kat": "Ladle ", "item": "Posisi Ladle ", "kode": "V", "std": "Posisi tepat di bawah ujung launder & \"mulut\" menghadap Timur", "pos": "Posisi"}, {"kat": "Safety", "item": "Aluminized Suit", "kode": "VT", "std": "Aluminized suit (hood, baju, celana, spat, glove) tersedia untuk digunakan", "pos": "Aluminized Suit"}, {"kat": "Safety", "item": "Face Shield", "kode": "V", "std": "Face shield tersedia untuk digunakan", "pos": "Face Shield"}, {"kat": "Safety", "item": "Gloves Tahan Panas", "kode": "VT", "std": "Gloves tersedia untuk digunakan", "pos": "Gloves Tahan Panas"}, {"kat": "Safety", "item": "APAR / Fire Extinguisher", "kode": "VT", "std": "Tersedia APAR dry powder (cek tekanan-nya)", "pos": "APAR"}, {"kat": "Peralatan Penunjang", "item": "Pipe Lancing", "kode": "V", "std": "Pipa lancing tersedia & siap digunakan", "pos": "Pipe Lancing"}, {"kat": "Peralatan Penunjang", "item": "Connector", "kode": "VT", "std": "Connector & hose tersambung ke sumber oxygen dengan kondisi baik", "pos": "Connector"}, {"kat": "Peralatan Penunjang", "item": "Pencungkil Build Up", "kode": "V", "std": "Pencungkil & peralatan penunjang lainnya tersedia & siap digunakan", "pos": "Pencungkil Build Up"}, {"kat": "Peralatan Penunjang", "item": "Sendok & Cetakan Sample", "kode": "VT", "std": "Sendok & cetakan sampel tersedia, diberi kapur / ramming, & sudah dipanaskan", "pos": "Sendok & Cetakan Sample"}, {"kat": "Peralatan Penunjang", "item": "Temp Tip & Rod", "kode": "V", "std": "Temp rod berfungsi & stok temp tip tersedia di area tapping", "pos": "Temp Tip & Rod"}, {"kat": "Peralatan Penunjang", "item": "Emergency Plug", "kode": "V", "std": "Emergency plug tersedia di area tapping untuk kondisi emergency", "pos": "Emergency Plug & Palu 5 kg"}, {"kat": "Peralatan Penunjang", "item": "Oven Body & Temp Controller", "kode": "VT", "std": "Oven berfungsi dengan baik, temp 80-100 C", "pos": "Oven"}, {"kat": "Materials", "item": "Clay Mudgun", "kode": "V", "std": "Clay tersedia di area tapping & siap digunakan (sudah di oven)", "pos": "Clay Mudgun"}, {"kat": "Materials", "item": "Oxygen Source", "kode": "V", "std": "Sumber oxygen tersedia dengan minimal press 1 Mpa", "pos": "Oxygen Source"}, {"kat": "Materials", "item": "Pasir Kuning, Sekam Padi, Kapur", "kode": "V", "std": "Pasir, sekam padi, kapur tersedia di bagian Utara maupun Selatan launder tapping", "pos": "Pasir Kuning, Sekam Padi, Kapur"}, {"kat": "Materials", "item": "Ramming Material", "kode": "V", "std": "Ramming material tersedia di area tapping untuk service launder", "pos": "Ramming Material"}, {"kat": "Coordination", "item": "Koordinasi HMC & Shotting", "kode": "V", "std": "Memastikan kesiapan area downstream untuk memproses FeNi yang di tapping", "pos": "Koordinasi HMC & Shotting"}]}, "hmc": {"title": "Hot Metal Crane (HMC)", "version": "2026 01 30", "items": [{"kat": "Main Hoist", "item": "Fungsi kontrol main hoist", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hoist naik turun/turun gerak halus tanpa hentakan"}, {"kat": "Main Hoist", "item": "Fungsi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, limit switch hoist memutus arus saat posisi atas/bawah tercapai"}, {"kat": "Main Hoist", "item": "Fungsi lower limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, limit switch hoist memutus arus saat posisi atas/bawah tercapai"}, {"kat": "Main Hoist", "item": "Drum hoist", "kode": "V", "std": "Drum hoist alur bersih,tanpa kerusakan"}, {"kat": "Main Hoist", "item": "Bearing dan gear box", "kode": "V", "std": "Bearing dan gear box pelumasan cukup, tidak bocor oli/grease"}, {"kat": "Main Hoist", "item": "Kondisi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Kondisi wire rope", "kode": "V", "std": "Tidak ada abnormality, wire rope utama tidak ada kawat putus, tidak kusut, tidak korosi"}, {"kat": "Main Hoist", "item": "Kondisi shaft pulley", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Kondisi bale Utara", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hook / block hook tidak retak"}, {"kat": "Main Hoist", "item": "Kondisi bale Selatan", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, hook / block hook tidak retak"}, {"kat": "Main Hoist", "item": "Kondisi lock pin bale", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Main Hoist", "item": "Sistem Pengereman", "kode": "V", "std": "Sistem rem utama respon cepat, tidak slip, sistem pengereman berhenti tepat saat kontrol di lepas"}, {"kat": "Main Hoist", "item": "Rem darurat", "kode": "V", "std": "Rem darurat aktif saat pengujian"}, {"kat": "Aux Hoist", "item": "Auxilliary", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi upper limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi lower limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Fungsi power limit", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Aux Hoist", "item": "Kondisi wire rope", "kode": "V", "std": "Tidak ada abnormality, wire rope utama tidak ada kawat putus, tidak kusut, tidak korosi"}, {"kat": "Aux Hoist", "item": "Kondisi hook lock", "kode": "V", "std": "Kondisi hook & safety latch tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Fungsi kontrol bridge", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, bridge travel pergerakan stabil, tidak ada suara abnormal, bridge kiri/ kanan gerak lancar tidak bergetar"}, {"kat": "Bridge", "item": "Fungsi rem", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Kondisi shaft drive", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Bridge", "item": "Stop block", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Fungsi kontrol trolly", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, trolly travel pergerakan halus, tidak tersendat, trolly maju/ mundur gerak stabil tidak melenceng"}, {"kat": "Trolly", "item": "Kondisi safety wood", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Stop block", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Saklar utama", "kode": "V", "std": "Saklar utama berfungsi dan tidak longgar"}, {"kat": "Trolly", "item": "Lampu indikator", "kode": "V", "std": "Lampu indikator dan display menyala normal"}, {"kat": "Trolly", "item": "Limit switch hoist", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Trolly", "item": "Limit switch troley", "kode": "V", "std": "Limit swicth trolly dan bridge memutus arus saat batas tercapai"}, {"kat": "Trolly", "item": "Kabel daya", "kode": "V", "std": "Kabel daya dan kontrol tidak terkelupas,tidak longgar"}, {"kat": "Trolly", "item": "Emergency stop", "kode": "V", "std": "Emergensi stop memutus arus saat di tekan"}, {"kat": "Cabin Operator", "item": "Fungsi tombol power kontrol", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, panel kontrol bersih, bebas debu dan air, pintu terkunci"}, {"kat": "Cabin Operator", "item": "Panel monitor", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Display timbangan", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi camera", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Monitor camera", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi AC", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi radio", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Fungsi horn", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi kaca kabin", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi tempat duduk", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality"}, {"kat": "Cabin Operator", "item": "Kondisi tangga", "kode": "V", "std": "Kondisi tidak rusak / tidak ada abnormality, tangga & platform kerja tidak licin, railing kokoh"}, {"kat": "Pemeriksaan Struktur", "item": "Girder", "kode": "V", "std": "Main girder dan end carriage tidak ada retakan,deformasi,atau karat parah"}, {"kat": "Pemeriksaan Struktur", "item": "Sambungan & las baut", "kode": "V", "std": "Sambungan dan las baut kencang las utuh"}, {"kat": "Pemeriksaan Struktur", "item": "Rel crane", "kode": "V", "std": "Rel crane dan roda tidak aus berlebihan,bebas dari halangan/debu tebal"}, {"kat": "Sistem Keselamatan", "item": "Alarm / Horn / Lampu / Sirene Peringatan", "kode": "VS", "std": "Alarm dan horn bunyi jelas, alarm dan lampu aktif saat operasi menyala otomatis, sirene peringatan beban panas aktif saat angkat beban"}, {"kat": "Sistem Keselamatan", "item": "Botol pemadam (APAR)", "kode": "V", "std": "APAR (pemadam) tekanan normal, tidak kadaluarsa"}, {"kat": "Sistem Keselamatan", "item": "Jalur evakuasi", "kode": "V", "std": "Jalur evakuasi aman, bebas hambatan"}, {"kat": "Sistem Keselamatan", "item": "Rambu K3 / Safety Sign", "kode": "V", "std": "Rambu K3 (peringatan, larangan, wajib, informasi) terpasang lengkap, jelas terbaca, kondisi tidak rusak"}]}};
 
 const SHIFTS = [
   {id:"Pagi", label:"Pagi (07:00 - 15:00)"},
@@ -361,9 +361,17 @@ function renderChecklistPicker(){
   `));
 }
 
-/* ======================= SETUP: TANGGAL / SHIFT / GROUP ======================= */
+/* ======================= SETUP: TANGGAL / SHIFT =======================
+ * Group is NO LONGER chosen here as a separate step - as soon as
+ * Tanggal/Shift are set, the checklist form opens directly. Which Group
+ * shows up is resolved automatically on the backend (from whatever was
+ * used previously for this shift/date, or the shift right before it) -
+ * see resolveGroupForDate_ in Code.gs. The Group itself is then just a
+ * dropdown INSIDE the already-open form (in the formbar, above "Kode
+ * metode pemeriksaan"), the same spot "Ganti Group" used to be. */
 function openChecklistSetup(key){
   CURRENT.checklistKey = key;
+  CURRENT.group = null;
   const app = document.getElementById("app");
   app.innerHTML = "";
   const def = CHECKLIST_DATA[key];
@@ -375,34 +383,87 @@ function openChecklistSetup(key){
       <div class="fld"><label>Shift Kerja</label>
         <select id="su-shift">${SHIFTS.map(s=>`<option value="${s.id}">${s.label}</option>`).join("")}</select>
       </div>
-      <div class="fld"><label>Group</label>
-        <select id="su-group">${GROUPS.map(g=>`<option value="${g}">Group ${g}</option>`).join("")}</select>
-      </div>
       <div class="fld" style="flex:0;">
-        <button class="btn" onclick="loadChecklistForm()">Buka Checklist</button>
+        <button class="btn" onclick="openChecklistDirect()">Buka Checklist</button>
       </div>
     </div>
     <div id="su-status"></div>
   `));
 }
 
-async function loadChecklistForm(){
+/* Opens the checklist form right away for the chosen Tanggal/Shift. The
+ * Group is resolved automatically on the backend (autoProvision:true also
+ * creates an empty Draft row the first time this exact tanggal/shift/group
+ * combo is opened, same as before). */
+async function openChecklistDirect(){
   const tanggal = document.getElementById("su-tanggal").value;
   const shift = document.getElementById("su-shift").value;
-  const group = document.getElementById("su-group").value;
   const statusBox = document.getElementById("su-status");
   if(!tanggal){ statusBox.innerHTML = `<div class="msg err">Pilih tanggal terlebih dahulu.</div>`; return; }
-  CURRENT.tanggal = tanggal; CURRENT.shift = shift; CURRENT.group = group;
+  CURRENT.tanggal = tanggal; CURRENT.shift = shift; CURRENT.group = null;
   statusBox.innerHTML = `<div class="msg info"><span class="spinner"></span> Memuat data...</div>`;
   try{
     const rec = await api("getChecklist", {
-      checklistName: CURRENT.checklistKey, tanggal, shift, group
+      checklistName: CURRENT.checklistKey, tanggal, shift, autoProvision: true
     });
-    CURRENT.record = rec; // {found, status, dataJson, signatures, id, createdBy, finalizedBy, finalizedAt, ...} or {found:false}
+    CURRENT.group = rec.group || null;
+    CURRENT.record = rec; // {found, status, dataJson, signatures, group, ...} or {found:false, group}
+    await loadPrevShiftHandover();
     renderChecklistForm();
   }catch(e){
     statusBox.innerHTML = `<div class="msg err">${e.message}</div>`;
   }
+}
+
+/* Fired from the Group <select> inside the already-open form. Group is
+ * NOT part of the data key anymore - there is only ONE record per
+ * Tanggal+Shift, no matter which Group is selected. So changing this
+ * dropdown never re-fetches anything and never touches the item rows,
+ * catatan, or signatures already on screen - it just relabels who filled
+ * this shift in, and that label rides along on the next autosave/submit
+ * (see saveDraft/submitFinal, which always send CURRENT.group). The one
+ * time we DO re-render is when no Group was chosen yet at all (brand new
+ * checklist row, table not shown yet) - there is nothing to lose there
+ * since the item table isn't on screen yet. */
+function onGroupChange(newGroup){
+  if(!newGroup || newGroup === CURRENT.group) return;
+  const hadNoGroup = !CURRENT.group;
+  CURRENT.group = newGroup;
+  markDirty();
+  if(hadNoGroup) renderChecklistForm();
+}
+
+/* Looks up the immediately-preceding shift's handover note (same Group)
+ * so it can be shown as a banner at the top of the form - Pagi's
+ * previous shift is the PREVIOUS DAY's Malam. Failures are silent
+ * (missing/blocked previous record just means no banner is shown). */
+function prevShiftKey(tanggal, shift){
+  if(shift === "Siang") return {tanggal, shift:"Pagi"};
+  if(shift === "Malam") return {tanggal, shift:"Siang"};
+  // Pagi -> previous day's Malam
+  const d = new Date(tanggal + "T00:00:00");
+  d.setDate(d.getDate() - 1);
+  return {tanggal: d.toISOString().slice(0,10), shift:"Malam"};
+}
+
+async function loadPrevShiftHandover(){
+  CURRENT.prevHandover = null;
+  try{
+    const prev = prevShiftKey(CURRENT.tanggal, CURRENT.shift);
+    // No `group` sent on purpose: the previous shift's note should show up
+    // regardless of which Group filled it in (and `autoProvision` is left
+    // off too, so just peeking here never creates a phantom draft row for
+    // a shift nobody actually opened).
+    const prevRec = await api("getChecklist", {
+      checklistName: CURRENT.checklistKey, tanggal: prev.tanggal, shift: prev.shift
+    });
+    if(prevRec && prevRec.found && prevRec.dataJson){
+      const d = JSON.parse(prevRec.dataJson);
+      if(d._handover && d._handover.text){
+        CURRENT.prevHandover = {text: d._handover.text, shiftLabel: SHIFTS.find(s=>s.id===prev.shift).label, tanggal: prev.tanggal};
+      }
+    }
+  }catch(e){ /* silent - banner just won't show */ }
 }
 
 /* ======================= CHECKLIST FORM ======================= */
@@ -422,66 +483,88 @@ function renderChecklistForm(){
   const rec = CURRENT.record;
   app.innerHTML = "";
 
+  // Computed up-front (used by the Group <select> in the header below too):
+  // Group can only be changed while the record is a Draft (or right after
+  // an Engineer reverts it back to Draft) - once it's Final it's locked
+  // for everyone except Engineer, same as every other field on the form.
+  const readOnly = (SESSION.role === "superintendent") || (rec && rec.found && rec.status === "Final" && SESSION.role !== "engineer");
+  const isFinal = rec && rec.found && rec.status === "Final";
+
   const header = el(`
     ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist", fn:"renderChecklistPicker()"}, {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
     <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">v.${def.version}</small></h2>
     <div class="formbar">
       <div class="fld"><label>Tanggal</label><div><b>${CURRENT.tanggal}</b></div></div>
       <div class="fld"><label>Shift</label><div><b>${SHIFTS.find(s=>s.id===CURRENT.shift).label}</b></div></div>
-      <div class="fld"><label>Group</label><div><b>Group ${CURRENT.group}</b></div></div>
+      <div class="fld">
+        <label>Group</label>
+        <select id="group-select" onchange="onGroupChange(this.value)" ${readOnly?"disabled":""} title="Group hanya keterangan siapa yang mengisi - tidak memengaruhi data checklist di tanggal/shift ini.">
+          <option value="" ${!CURRENT.group?"selected disabled":""}>-</option>
+          ${GROUPS.map(g=>`<option value="${g}" ${CURRENT.group===g?"selected":""}>Group ${g}</option>`).join("")}
+        </select>
+      </div>
       <div class="fld"><label>Status</label><div><span class="status-badge ${rec && rec.found && rec.status==='Final' ? 'final':'draft'}">${rec && rec.found ? rec.status : 'BELUM ADA DATA'}</span></div></div>
-      <div class="fld" style="flex:0;"><button class="btn secondary" onclick="openChecklistSetup('${CURRENT.checklistKey}')">Ganti Tanggal/Shift/Group</button></div>
+      <div class="fld" style="flex:0;"><button class="btn secondary" onclick="openChecklistSetup('${CURRENT.checklistKey}')">Ganti Tanggal/Shift</button></div>
     </div>
   `);
   app.appendChild(header);
+
+  if(!CURRENT.group){
+    app.appendChild(el(`
+      <div class="msg info" style="margin-bottom:16px;">
+        ⚠️ Checklist untuk tanggal/shift ini belum pernah diisi Group manapun. Pilih Group pada dropdown di atas untuk mulai mengisi (pilihan ini akan otomatis diingat untuk pengisian berikutnya - dan berlaku untuk tanggal/shift ini saja, apa pun Group yang dipilih setelahnya).
+      </div>
+    `));
+    return;
+  }
+
+  if(CURRENT.prevHandover){
+    app.appendChild(el(`
+      <div class="msg info" style="margin-bottom:16px;">
+        📝 <b>Catatan dari shift ${CURRENT.prevHandover.shiftLabel} (${CURRENT.prevHandover.tanggal}):</b><br>
+        ${String(CURRENT.prevHandover.text).replace(/</g,"&lt;").replace(/\n/g,"<br>")}
+      </div>
+    `));
+  }
 
   if(isLockedForMe(rec)){
     app.appendChild(el(`
       <div class="locked-box">
         <div class="big">🔒</div>
         <h3>Laporan periode ini sudah FINAL</h3>
-        <p>Laporan untuk tanggal/shift/group ini sudah dikirim final oleh shift bertugas dan terkunci.<br>
+        <p>Laporan untuk tanggal/shift ini sudah dikirim final oleh shift bertugas dan terkunci.<br>
         Hubungi Engineer jika perlu perubahan.</p>
       </div>
     `));
     return;
   }
 
-  const readOnly = (SESSION.role === "superintendent") || (rec && rec.found && rec.status === "Final" && SESSION.role !== "engineer");
-  const isFinal = rec && rec.found && rec.status === "Final";
-
   // build item rows grouped by kategori
   const savedItems = (rec && rec.found && rec.dataJson) ? JSON.parse(rec.dataJson) : {};
-  const SLOTS = [{key:"awal", label:"Awal Shift"}, {key:"akhir", label:"Akhir Shift"}];
   let lastKat = null;
   let rows = "";
   def.items.forEach((it, idx)=>{
     if(it.kat !== lastKat){
-      rows += `<tr class="kat-row"><td colspan="7">${it.kat}</td></tr>`;
+      rows += `<tr class="kat-row"><td colspan="5">${it.kat}</td></tr>`;
       lastKat = it.kat;
     }
     const saved = savedItems[idx] || {};
+    const s = saved.awal || {};
     const kodeBadges = it.kode.split("").map(k=>`<span class="kode-badge" title="${KODE_KETERANGAN[k]||k}">${k}</span>`).join(" ");
-    let slotCells = "";
-    SLOTS.forEach(slot=>{
-      const s = saved[slot.key] || {};
-      slotCells += `
+    rows += `
+      <tr>
+        <td class="item-col">${it.pos ? `<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</td>
+        <td>${kodeBadges}</td>
+        <td class="std-col">${it.std || ""}</td>
         <td>
-          <select class="hasil-sel ${(s.h||"").toLowerCase()}" data-idx="${idx}" data-slot="${slot.key}" onchange="onHasilChange(this)" ${readOnly?"disabled":""}>
+          <select class="hasil-sel ${(s.h||"").toLowerCase()}" data-idx="${idx}" data-slot="awal" onchange="onHasilChange(this)" ${readOnly?"disabled":""}>
             <option value="" ${!s.h?"selected":""}>-</option>
             <option value="V" ${s.h==="V"?"selected":""}>V (Normal)</option>
             <option value="X" ${s.h==="X"?"selected":""}>X (Abnormal)</option>
             <option value="O" ${s.h==="O"?"selected":""}>O (Tertangani)</option>
           </select>
         </td>
-        <td><input class="catatan-inp" data-idx="${idx}" data-slot="${slot.key}" placeholder="Catatan / penanganan" value="${(s.c||"").replace(/"/g,'&quot;')}" oninput="markDirty()" ${readOnly?"disabled":""}></td>`;
-    });
-    rows += `
-      <tr>
-        <td class="item-col">${it.pos ? `<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</td>
-        <td>${kodeBadges}</td>
-        <td class="std-col">${it.std || ""}</td>
-        ${slotCells}
+        <td><input class="catatan-inp" data-idx="${idx}" data-slot="awal" placeholder="Catatan / penanganan" value="${(s.c||"").replace(/"/g,'&quot;')}" oninput="markDirty()" ${readOnly?"disabled":""}></td>
       </tr>`;
   });
 
@@ -491,15 +574,11 @@ function renderChecklistForm(){
     <table class="chk-table" id="chk-table">
       <thead>
         <tr>
-          <th rowspan="2">Item Pemeriksaan</th>
-          <th rowspan="2">Metode</th>
-          <th rowspan="2">Standar Pemeriksaan</th>
-          <th colspan="2" style="text-align:center;">Pemeriksaan Awal Shift</th>
-          <th colspan="2" style="text-align:center;">Pemeriksaan Akhir Shift</th>
-        </tr>
-        <tr>
-          <th>Hasil</th><th>Catatan / Penanganan</th>
-          <th>Hasil</th><th>Catatan / Penanganan</th>
+          <th>Item Pemeriksaan</th>
+          <th>Metode</th>
+          <th>Standar Pemeriksaan</th>
+          <th>Hasil</th>
+          <th>Catatan / Penanganan</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -507,6 +586,15 @@ function renderChecklistForm(){
     </div>
   `);
   app.appendChild(table);
+
+  // handover note for the NEXT shift
+  const handoverText = (savedItems._handover && savedItems._handover.text) || "";
+  app.appendChild(el(`
+    <div class="sig-box" style="margin-top:20px;">
+      <h4>Catatan untuk Shift Berikutnya (jika ada issue)</h4>
+      <textarea id="handover-note" rows="3" placeholder="Tulis catatan/serah-terima untuk shift berikutnya di sini (opsional)" oninput="markDirty()" ${readOnly?"disabled":""}>${handoverText.replace(/</g,"&lt;")}</textarea>
+    </div>
+  `));
 
   // signatures
   const savedSig = (rec && rec.found && rec.signatures) ? JSON.parse(rec.signatures) : {};
@@ -530,10 +618,12 @@ function renderChecklistForm(){
   const canSubmitFinal = !isFinal && canEditRole();
   const canRevert = isFinal && SESSION.role === "engineer";
   const canExportPdf = ["supervisor","superintendent","engineer"].includes(SESSION.role);
+  const canExportDay = SESSION.role === "engineer";
   const savebar = el(`
     <div class="savebar no-print">
       <div class="autosave-note" id="autosaveNote">${readOnly && SESSION.role==="superintendent" ? "Mode lihat saja (Superintendent)" : ""}</div>
       ${canExportPdf ? `<button class="btn secondary" onclick="window.print()">🖨️ Export PDF</button>` : ""}
+      ${canExportDay ? `<button class="btn secondary" onclick="exportDayPdf()">🖨️ Export PDF (1 Hari - Semua Shift)</button>` : ""}
       ${!readOnly ? `<button class="btn secondary" onclick="saveDraft(true)">Simpan Draft</button>` : ""}
       ${canSubmitFinal ? `<button class="btn" onclick="submitFinal()">✅ Kirim Laporan (Final)</button>` : ""}
       ${canRevert ? `<button class="btn danger" onclick="revertToDraft()">↩️ Kembalikan ke Draft</button>` : ""}
@@ -543,10 +633,99 @@ function renderChecklistForm(){
 
   // init signature pads after DOM insert
   setTimeout(()=>{
+
     ["operator","supervisor","superintendent"].forEach(role=>{
       initSigPad(role, savedSig[role]?.img);
     });
   },0);
+}
+
+/* ======================= EXPORT PDF - 1 HARI (SEMUA SHIFT) =======================
+ * Lets Engineer print/export all 3 shifts (Pagi/Siang/Malam) of one day +
+ * group in a single PDF, instead of opening & printing each shift one by
+ * one. Fetches the 3 shift records, renders a read-only combined view,
+ * then reuses the browser's own print-to-PDF (same mechanism as the
+ * existing per-shift "Export PDF" button). */
+async function exportDayPdf(){
+  const def = CHECKLIST_DATA[CURRENT.checklistKey];
+  const tanggal = CURRENT.tanggal, group = CURRENT.group;
+  const app = document.getElementById("app");
+  const prevHtml = app.innerHTML;
+  app.innerHTML = `<div class="msg info"><span class="spinner"></span> Menyiapkan rekap 1 hari...</div>`;
+  try{
+    const shiftsData = {};
+    for(const s of SHIFTS){
+      // No `group` sent on purpose: pick up whichever Group actually
+      // worked each shift that day, same as the physical Form Fisik does,
+      // instead of forcing all 3 shifts to the currently-viewed Group.
+      shiftsData[s.id] = await api("getChecklist", {checklistName: CURRENT.checklistKey, tanggal, shift: s.id});
+    }
+    renderDayPrintView(def, tanggal, group, shiftsData);
+    setTimeout(()=>{
+      window.print();
+      renderChecklistForm();
+    }, 300);
+  }catch(e){
+    app.innerHTML = prevHtml;
+    alert("Gagal menyiapkan rekap 1 hari: " + e.message);
+  }
+}
+
+function buildPrintItemsTable(def, savedItems){
+  let lastKat = null, rows = "";
+  def.items.forEach((it, idx)=>{
+    if(it.kat !== lastKat){ rows += `<tr class="kat-row"><td colspan="5">${it.kat}</td></tr>`; lastKat = it.kat; }
+    const saved = savedItems[idx] || {};
+    const s = saved.awal || {};
+    const kodeBadges = it.kode.split("").map(k=>`<span class="kode-badge">${k}</span>`).join(" ");
+    const catatan = (s.c||"").replace(/</g,"&lt;");
+    rows += `<tr><td class="item-col">${it.pos?`<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</td><td>${kodeBadges}</td><td class="std-col">${it.std||""}</td><td>${s.h||"-"}</td><td>${catatan}</td></tr>`;
+  });
+  const handover = (savedItems._handover && savedItems._handover.text) ? `<div class="msg info" style="margin-top:8px;">📝 Catatan untuk shift berikutnya: ${savedItems._handover.text.replace(/</g,"&lt;")}</div>` : "";
+  return `<div style="overflow-x:auto;"><table class="chk-table"><thead><tr>
+      <th>Item Pemeriksaan</th><th>Metode</th><th>Standar</th><th>Hasil</th><th>Catatan</th>
+    </tr></thead>
+    <tbody>${rows}</tbody></table></div>${handover}`;
+}
+
+function buildPrintSigBlock(signaturesJson){
+  let sig = {};
+  try{ sig = JSON.parse(signaturesJson||"{}"); }catch(e){}
+  const boxes = ["operator","supervisor","superintendent"].map(role=>{
+    const s = sig[role] || {};
+    const imgHtml = s.img ? `<img src="${s.img}" style="max-width:100%;max-height:90px;">` : `<div style="height:70px;border:1px dashed var(--border);"></div>`;
+    return `<div class="sig-box"><h4>Tanda Tangan ${ROLE_LABEL[role]}</h4><div class="name">${s.name||"-"}</div>${imgHtml}</div>`;
+  }).join("");
+  return `<div class="sig-grid">${boxes}</div>`;
+}
+
+function renderDayPrintView(def, tanggal, group, shiftsData){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  let html = `
+    <div class="no-print" style="margin-bottom:16px;">
+      <button class="btn secondary" onclick="renderChecklistForm()">← Kembali</button>
+    </div>
+    <h2>${def.title} — Rekap 1 Hari</h2>
+    <p><b>Tanggal:</b> ${tanggal}</p>
+  `;
+  // Each shift can have its OWN Group (Group is just a label per
+  // tanggal+shift now, not a filter) - so it's shown per shift block
+  // below instead of a single day-wide Group in the header above.
+  SHIFTS.forEach(s=>{
+    const rec = shiftsData[s.id];
+    const found = rec && rec.found;
+    let savedItems = {};
+    if(found && rec.dataJson){ try{ savedItems = JSON.parse(rec.dataJson); }catch(e){} }
+    html += `
+      <div style="page-break-inside:avoid;margin:24px 0;">
+        <h3>Shift ${s.label} ${found && rec.group ? `&nbsp; <small style="color:var(--muted);font-weight:400;">Group ${rec.group}</small>`:""} &nbsp; <span class="status-badge ${found && rec.status==='Final' ? 'final':'draft'}">${found ? rec.status : 'BELUM ADA DATA'}</span></h3>
+        ${buildPrintItemsTable(def, savedItems)}
+        ${found ? buildPrintSigBlock(rec.signatures) : ''}
+      </div>
+    `;
+  });
+  app.appendChild(el(html));
 }
 
 function onHasilChange(sel){
@@ -565,19 +744,17 @@ function markDirty(){
 function collectFormData(){
   const def = CHECKLIST_DATA[CURRENT.checklistKey];
   const data = {};
-  const SLOT_KEYS = ["awal","akhir"];
   def.items.forEach((it, idx)=>{
-    const entry = {};
-    let hasAny = false;
-    SLOT_KEYS.forEach(slot=>{
-      const hSel = document.querySelector(`.hasil-sel[data-idx="${idx}"][data-slot="${slot}"]`);
-      const cInp = document.querySelector(`.catatan-inp[data-idx="${idx}"][data-slot="${slot}"]`);
-      const h = hSel ? hSel.value : "";
-      const c = cInp ? cInp.value : "";
-      if(h || c){ entry[slot] = {h, c}; hasAny = true; }
-    });
-    if(hasAny) data[idx] = entry;
+    const hSel = document.querySelector(`.hasil-sel[data-idx="${idx}"][data-slot="awal"]`);
+    const cInp = document.querySelector(`.catatan-inp[data-idx="${idx}"][data-slot="awal"]`);
+    const h = hSel ? hSel.value : "";
+    const c = cInp ? cInp.value : "";
+    if(h || c) data[idx] = {awal: {h, c}};
   });
+  const handoverEl = document.getElementById("handover-note");
+  if(handoverEl && handoverEl.value.trim()){
+    data._handover = {text: handoverEl.value};
+  }
   const signatures = {};
   ["operator","supervisor","superintendent"].forEach(role=>{
     const pad = CURRENT.sigPads[role];
@@ -590,6 +767,7 @@ function collectFormData(){
 
 async function saveDraft(manual){
   if(!canEditRoleOrEngineer()) return;
+  if(!CURRENT.group){ if(manual) alert("Pilih Group terlebih dahulu sebelum menyimpan."); return; }
   const note = document.getElementById("autosaveNote");
   if(manual && note) note.innerHTML = `<span class="spinner"></span> Menyimpan...`;
   const payload = Object.assign({
@@ -612,6 +790,7 @@ function refreshStatusBadge(){
 }
 
 async function submitFinal(){
+  if(!CURRENT.group){ alert("Pilih Group terlebih dahulu sebelum mengirim laporan."); return; }
   if(!confirm("Kirim laporan sebagai FINAL? Setelah final, operator & supervisor tidak bisa mengubah/melihat lagi (kecuali dibuka kembali oleh Engineer).")) return;
   const payload = Object.assign({
     checklistName: CURRENT.checklistKey, tanggal: CURRENT.tanggal, shift: CURRENT.shift, group: CURRENT.group
