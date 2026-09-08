@@ -69,8 +69,12 @@ button.btn:disabled{opacity:.5;cursor:not-allowed;}
 .status-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.3px;}
 .status-badge.draft{background:#fef3c7;color:#92400e;}
 .status-badge.final{background:#dcfce7;color:#166534;}
+.status-badge.pending{background:#dbeafe;color:#1e40af;}
 [data-theme="dark"] .status-badge.draft{background:#3a2c0f;color:#fbbf24;}
 [data-theme="dark"] .status-badge.final{background:#12301f;color:#4ade80;}
+[data-theme="dark"] .status-badge.pending{background:#1e2f4d;color:#60a5fa;}
+.sig-box.sig-inactive{opacity:.5;}
+.sig-box.sig-inactive .sig-pad{pointer-events:none;}
 .locked-box{background:var(--panel);border:1px dashed var(--border);border-radius:14px;padding:60px 20px;text-align:center;color:var(--muted);}
 .locked-box .big{font-size:40px;}
 .savebar{position:sticky;bottom:0;background:var(--panel);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;z-index:40;}
@@ -143,7 +147,7 @@ const ROLE_LABEL = {operator:"Operator", supervisor:"Supervisor", superintendent
 
 /* ======================= STATE ======================= */
 let SESSION = JSON.parse(localStorage.getItem("cf_session") || "null");
-let CURRENT = { checklistKey:null, tanggal:null, shift:null, group:null, record:null, sigPads:{} };
+let CURRENT = { checklistKey:null, tanggal:null, shift:null, group:null, record:null, sigPads:{}, prevHandover:null, prevOpenItems:{} };
 let saveTimer = null;
 let dirty = false;
 
@@ -170,6 +174,45 @@ function localDateStr(d){
   return `${y}-${m}-${day}`;
 }
 function todayStr(){ return localDateStr(new Date()); }
+
+/* ======================= TIERED APPROVAL STAGES =======================
+ * A checklist now moves through 4 statuses in order:
+ *   Draft -> Menunggu Supervisor -> Menunggu Superintendent -> Final
+ * Each forward step requires that stage's own role to sign their own
+ * signature box first, then click that stage's "kirim" button - Operator
+ * signs & sends to Supervisor, Supervisor signs & sends to
+ * Superintendent, Superintendent signs & finalizes. Engineer can sign
+ * ANY box and push ANY stage forward (full override), and is the only
+ * role that can send a report back to Draft once it's moved past that
+ * (see revertToDraft()/actionSetDraft on the backend - unchanged). */
+const STAGE_ORDER = ["Draft","Menunggu Supervisor","Menunggu Superintendent","Final"];
+// Whose turn it is to act (edit items/sign/advance) at each status -
+// besides Engineer, who can always act at any stage.
+const STAGE_ACTIVE_ROLE = {
+  "Draft": ["operator","supervisor"],
+  "Menunggu Supervisor": ["supervisor"],
+  "Menunggu Superintendent": ["superintendent"],
+  "Final": []
+};
+// The next status + who triggers it + which signature box must be filled
+// first, keyed by CURRENT status (i.e. "what happens if the active role
+// clicks the one action button available at this stage").
+const STAGE_NEXT = {
+  "Draft": {action:"submitToSupervisor", nextStatus:"Menunggu Supervisor", byRole:"operator", needsSig:"operator", label:"Kirim ke Supervisor"},
+  "Menunggu Supervisor": {action:"submitToSuperintendent", nextStatus:"Menunggu Superintendent", byRole:"supervisor", needsSig:"supervisor", label:"Kirim ke Superintendent"},
+  "Menunggu Superintendent": {action:"submitFinal", nextStatus:"Final", byRole:"superintendent", needsSig:"superintendent", label:"✅ Kirim Laporan (Final)"}
+};
+function statusBadgeClass(status){
+  if(status === "Final") return "final";
+  if(status === "Menunggu Supervisor" || status === "Menunggu Superintendent") return "pending";
+  return "draft";
+}
+// Is the given role (besides engineer, who's always active) the one
+// currently allowed to edit items/sign/advance at this status?
+function isActiveRoleForStatus(role, status){
+  if(role === "engineer") return true;
+  return (STAGE_ACTIVE_ROLE[status] || []).indexOf(role) !== -1;
+}
 
 // Renders a row of pill-shaped BUTTONS instead of a plain "a / b / c" text
 // breadcrumb. `steps` is an array of {label, fn}; the LAST step should
@@ -463,6 +506,7 @@ function prevShiftKey(tanggal, shift){
 
 async function loadPrevShiftHandover(){
   CURRENT.prevHandover = null;
+  CURRENT.prevOpenItems = {};
   try{
     const prev = prevShiftKey(CURRENT.tanggal, CURRENT.shift);
     // No `group` sent on purpose: the previous shift's note should show up
@@ -472,10 +516,18 @@ async function loadPrevShiftHandover(){
     const prevRec = await api("getChecklist", {
       checklistName: CURRENT.checklistKey, tanggal: prev.tanggal, shift: prev.shift
     });
-    if(prevRec && prevRec.found && prevRec.dataJson){
-      const d = JSON.parse(prevRec.dataJson);
-      if(d._handover && d._handover.text){
-        CURRENT.prevHandover = {text: d._handover.text, shiftLabel: SHIFTS.find(s=>s.id===prev.shift).label, tanggal: prev.tanggal};
+    // `.handover` and `.openItems` come straight from the backend now, and
+    // are ALWAYS populated regardless of role or whether that previous
+    // shift's report is Final-locked - every role needs to see this
+    // operational handover info, even operator/supervisor who otherwise
+    // can't see a locked shift's full itemized data (see
+    // extractContinuityInfo_ in Code.gs).
+    if(prevRec && prevRec.found){
+      if(prevRec.handover){
+        CURRENT.prevHandover = {text: prevRec.handover, shiftLabel: SHIFTS.find(s=>s.id===prev.shift).label, tanggal: prev.tanggal};
+      }
+      if(prevRec.openItems){
+        CURRENT.prevOpenItems = prevRec.openItems;
       }
     }
   }catch(e){ /* silent - banner just won't show */ }
@@ -492,18 +544,40 @@ function isLockedForMe(rec){
   return (SESSION.role === "operator" || SESSION.role === "supervisor");
 }
 
+// Only Operator/Supervisor ever edit the actual checklist items, and only
+// while the report is still at "Draft" (before Operator sends it up the
+// chain) - Superintendent NEVER edits items, only signs their own box at
+// their own stage. Engineer can always edit everything, at any stage
+// (full override), same as it can always sign any box.
+const ITEM_EDIT_ROLES = ["operator","supervisor"];
+function itemsReadOnlyFor(statusEff){
+  if(SESSION.role === "engineer") return false;
+  return !(statusEff === "Draft" && ITEM_EDIT_ROLES.indexOf(SESSION.role) !== -1);
+}
+// Which status each role's OWN signature box requires to be editable -
+// Engineer can edit any box at any status.
+const SIG_ROLE_STATUS = {"operator":"Draft","supervisor":"Menunggu Supervisor","superintendent":"Menunggu Superintendent"};
+function sigEditableFor(role, statusEff){
+  if(SESSION.role === "engineer") return true;
+  if(SESSION.role !== role) return false;
+  return statusEff === SIG_ROLE_STATUS[role];
+}
+
 function renderChecklistForm(){
   const app = document.getElementById("app");
   const def = CHECKLIST_DATA[CURRENT.checklistKey];
   const rec = CURRENT.record;
   app.innerHTML = "";
 
-  // Computed up-front (used by the Group <select> in the header below too):
-  // Group can only be changed while the record is a Draft (or right after
-  // an Engineer reverts it back to Draft) - once it's Final it's locked
-  // for everyone except Engineer, same as every other field on the form.
-  const readOnly = (SESSION.role === "superintendent") || (rec && rec.found && rec.status === "Final" && SESSION.role !== "engineer");
-  const isFinal = rec && rec.found && rec.status === "Final";
+  // statusEff: the record's real status once it exists, else "Draft" -
+  // every permission check below (items, group, each signature box, the
+  // stage-advance button) is driven off this one value, per the tiered
+  // approval chain: Draft -> Menunggu Supervisor -> Menunggu
+  // Superintendent -> Final. See STAGE_NEXT/itemsReadOnlyFor/
+  // sigEditableFor above.
+  const statusEff = (rec && rec.found) ? rec.status : "Draft";
+  const itemsReadOnly = itemsReadOnlyFor(statusEff);
+  const isFinal = statusEff === "Final";
 
   const header = el(`
     ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist", fn:"renderChecklistPicker()"}, {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
@@ -513,12 +587,12 @@ function renderChecklistForm(){
       <div class="fld"><label>Shift</label><div><b>${SHIFTS.find(s=>s.id===CURRENT.shift).label}</b></div></div>
       <div class="fld">
         <label>Group</label>
-        <select id="group-select" onchange="onGroupChange(this.value)" ${readOnly?"disabled":""} title="Group hanya keterangan siapa yang mengisi - tidak memengaruhi data checklist di tanggal/shift ini.">
+        <select id="group-select" onchange="onGroupChange(this.value)" ${itemsReadOnly?"disabled":""} title="Group hanya keterangan siapa yang mengisi - tidak memengaruhi data checklist di tanggal/shift ini.">
           <option value="" ${!CURRENT.group?"selected disabled":""}>-</option>
           ${GROUPS.map(g=>`<option value="${g}" ${CURRENT.group===g?"selected":""}>Group ${g}</option>`).join("")}
         </select>
       </div>
-      <div class="fld"><label>Status</label><div><span class="status-badge ${rec && rec.found && rec.status==='Final' ? 'final':'draft'}">${rec && rec.found ? rec.status : 'BELUM ADA DATA'}</span></div></div>
+      <div class="fld"><label>Status</label><div><span class="status-badge ${statusBadgeClass(statusEff)}">${rec && rec.found ? rec.status : 'BELUM ADA DATA'}</span></div></div>
       <div class="fld" style="flex:0;"><button class="btn secondary" onclick="openChecklistSetup('${CURRENT.checklistKey}')">Ganti Tanggal/Shift</button></div>
     </div>
   `);
@@ -533,6 +607,13 @@ function renderChecklistForm(){
     return;
   }
 
+  // Previous-shift handover note - shown to EVERY role (Operator,
+  // Supervisor, Superintendent, Engineer alike), even when that previous
+  // shift is already Final and locked, because knowing what the last
+  // shift flagged matters to whoever is filling in THIS shift regardless
+  // of role. Only this one note is exempt from the lock - the rest of
+  // that previous shift's data stays hidden from Operator/Supervisor per
+  // the usual rule (see isLockedForMe() below, which is unaffected).
   if(CURRENT.prevHandover){
     app.appendChild(el(`
       <div class="msg info" style="margin-bottom:16px;">
@@ -556,6 +637,7 @@ function renderChecklistForm(){
 
   // build item rows grouped by kategori
   const savedItems = (rec && rec.found && rec.dataJson) ? JSON.parse(rec.dataJson) : {};
+  const prevOpenItems = CURRENT.prevOpenItems || {};
   let lastKat = null;
   let rows = "";
   def.items.forEach((it, idx)=>{
@@ -565,26 +647,38 @@ function renderChecklistForm(){
     }
     const saved = savedItems[idx] || {};
     const s = saved.awal || {};
+    // Carry-over: if the PREVIOUS shift left this exact item as X
+    // (Abnormal, belum tertangani) with a catatan, and THIS shift hasn't
+    // written anything of its own for it yet, pre-fill the catatan field
+    // with that carried-over note - still a normal editable text field,
+    // so this shift can add to it (e.g. note it's now handled) once they
+    // pick a new Hasil. Never overwrites a catatan this shift already has.
+    let catatanVal = s.c || "";
+    let carriedOver = false;
+    if(!catatanVal && !s.h && prevOpenItems[idx]){
+      catatanVal = "↪ Belum tertangani (shift sebelumnya): " + prevOpenItems[idx];
+      carriedOver = true;
+    }
     const kodeBadges = it.kode.split("").map(k=>`<span class="kode-badge" title="${KODE_KETERANGAN[k]||k}">${k}</span>`).join(" ");
     rows += `
-      <tr>
+      <tr${carriedOver ? ' style="box-shadow:inset 3px 0 0 var(--bad);"' : ''}>
         <td class="item-col">${it.pos ? `<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</td>
         <td>${kodeBadges}</td>
         <td class="std-col">${it.std || ""}</td>
         <td>
-          <select class="hasil-sel ${(s.h||"").toLowerCase()}" data-idx="${idx}" data-slot="awal" onchange="onHasilChange(this)" ${readOnly?"disabled":""}>
+          <select class="hasil-sel ${(s.h||"").toLowerCase()}" data-idx="${idx}" data-slot="awal" onchange="onHasilChange(this)" ${itemsReadOnly?"disabled":""}>
             <option value="" ${!s.h?"selected":""}>-</option>
             <option value="V" ${s.h==="V"?"selected":""}>V (Normal)</option>
             <option value="X" ${s.h==="X"?"selected":""}>X (Abnormal)</option>
             <option value="O" ${s.h==="O"?"selected":""}>O (Tertangani)</option>
           </select>
         </td>
-        <td><input class="catatan-inp" data-idx="${idx}" data-slot="awal" placeholder="Catatan / penanganan" value="${(s.c||"").replace(/"/g,'&quot;')}" oninput="markDirty()" ${readOnly?"disabled":""}></td>
+        <td><input class="catatan-inp" data-idx="${idx}" data-slot="awal" placeholder="Catatan / penanganan" value="${catatanVal.replace(/"/g,'&quot;')}" oninput="markDirty()" ${itemsReadOnly?"disabled":""}></td>
       </tr>`;
   });
 
   const table = el(`
-    <div class="legend">Kode metode pemeriksaan — <span class="kode-badge">V</span> Visual &nbsp; <span class="kode-badge">S</span> Suara &nbsp; <span class="kode-badge">T</span> Sentuh &nbsp; <span class="kode-badge">B</span> Bau &nbsp;|&nbsp; Hasil: V=Normal, X=Abnormal tidak tertangani, O=Abnormal tertangani</div>
+    <div class="legend">Kode metode pemeriksaan — <span class="kode-badge">V</span> Visual &nbsp; <span class="kode-badge">S</span> Suara &nbsp; <span class="kode-badge">T</span> Sentuh &nbsp; <span class="kode-badge">B</span> Bau &nbsp;|&nbsp; Hasil: V=Normal, X=Abnormal tidak tertangani, O=Abnormal tertangani &nbsp;|&nbsp; <span style="box-shadow:inset 3px 0 0 var(--bad);padding-left:4px;">garis merah</span> = belum tertangani dari shift sebelumnya</div>
     <div style="overflow-x:auto;">
     <table class="chk-table" id="chk-table">
       <thead>
@@ -607,40 +701,52 @@ function renderChecklistForm(){
   app.appendChild(el(`
     <div class="sig-box" style="margin-top:20px;">
       <h4>Catatan untuk Shift Berikutnya (jika ada issue)</h4>
-      <textarea id="handover-note" rows="3" placeholder="Tulis catatan/serah-terima untuk shift berikutnya di sini (opsional)" oninput="markDirty()" ${readOnly?"disabled":""}>${handoverText.replace(/</g,"&lt;")}</textarea>
+      <textarea id="handover-note" rows="3" placeholder="Tulis catatan/serah-terima untuk shift berikutnya di sini (opsional)" oninput="markDirty()" ${itemsReadOnly?"disabled":""}>${handoverText.replace(/</g,"&lt;")}</textarea>
     </div>
   `));
 
-  // signatures
+  // signatures - each box is only editable by ITS OWN role, and only at
+  // that role's own stage in the chain (Engineer can edit any of the 3
+  // at any stage, as a full override).
   const savedSig = (rec && rec.found && rec.signatures) ? JSON.parse(rec.signatures) : {};
   app.appendChild(el(`<div class="sig-grid" id="sig-grid"></div>`));
   const sigWrap = document.getElementById("sig-grid");
   ["operator","supervisor","superintendent"].forEach(role=>{
+    const editable = sigEditableFor(role, statusEff);
     const box = el(`
-      <div class="sig-box">
+      <div class="sig-box ${editable?"":"sig-inactive"}">
         <h4>Tanda Tangan ${ROLE_LABEL[role]}</h4>
         <div class="name">${savedSig[role]?.name || (SESSION.role===role ? SESSION.fullName : "-")}</div>
         <canvas class="sig-pad" id="sig-${role}"></canvas>
         <div class="sig-actions">
-          <button class="btn secondary" onclick="clearSig('${role}')" ${readOnly?"disabled":""}>Bersihkan</button>
-          <button class="btn ghost" onclick="setSigName('${role}')" ${readOnly?"disabled":""}>Isi Nama</button>
+          <button class="btn secondary" onclick="clearSig('${role}')" ${editable?"":"disabled"}>Bersihkan</button>
+          <button class="btn ghost" onclick="setSigName('${role}')" ${editable?"":"disabled"}>Isi Nama</button>
         </div>
       </div>`);
     sigWrap.appendChild(box);
   });
 
-  // savebar
-  const canSubmitFinal = !isFinal && canEditRole();
-  const canRevert = isFinal && SESSION.role === "engineer";
+  // savebar - "Simpan" is available to whoever can currently act at this
+  // stage (see isActiveRoleForStatus), the one stage-advance button shown
+  // is whichever one applies to the CURRENT status (see STAGE_NEXT), and
+  // "Kembalikan ke Draft" now works from ANY non-Draft status (not just
+  // Final) so Engineer can unwind a wrong stage just as easily.
+  const canSaveProgress = isActiveRoleForStatus(SESSION.role, statusEff);
+  const stageInfo = STAGE_NEXT[statusEff];
+  const canAdvance = stageInfo && (SESSION.role === stageInfo.byRole || SESSION.role === "engineer");
+  const canRevert = statusEff !== "Draft" && SESSION.role === "engineer";
   const canExportPdf = ["supervisor","superintendent","engineer"].includes(SESSION.role);
   const canExportDay = SESSION.role === "engineer";
+  const viewOnlyNote = (!canSaveProgress && !isFinal)
+    ? "Mode lihat saja - menunggu " + (STAGE_ACTIVE_ROLE[statusEff]||[]).map(r=>ROLE_LABEL[r]).join("/") + "."
+    : "";
   const savebar = el(`
     <div class="savebar no-print">
-      <div class="autosave-note" id="autosaveNote">${readOnly && SESSION.role==="superintendent" ? "Mode lihat saja (Superintendent)" : ""}</div>
+      <div class="autosave-note" id="autosaveNote">${viewOnlyNote}</div>
       ${canExportPdf ? `<button class="btn secondary" onclick="window.print()">🖨️ Export PDF</button>` : ""}
       ${canExportDay ? `<button class="btn secondary" onclick="exportDayPdf()">🖨️ Export PDF (1 Hari - Semua Shift)</button>` : ""}
-      ${!readOnly ? `<button class="btn secondary" onclick="saveDraft(true)">Simpan Draft</button>` : ""}
-      ${canSubmitFinal ? `<button class="btn" onclick="submitFinal()">✅ Kirim Laporan (Final)</button>` : ""}
+      ${canSaveProgress ? `<button class="btn secondary" onclick="saveProgress(true)">${statusEff==="Draft"?"Simpan Draft":"Simpan"}</button>` : ""}
+      ${canAdvance ? `<button class="btn" onclick="advanceStage()">${stageInfo.label}</button>` : ""}
       ${canRevert ? `<button class="btn danger" onclick="revertToDraft()">↩️ Kembalikan ke Draft</button>` : ""}
     </div>
   `);
@@ -648,7 +754,6 @@ function renderChecklistForm(){
 
   // init signature pads after DOM insert
   setTimeout(()=>{
-
     ["operator","supervisor","superintendent"].forEach(role=>{
       initSigPad(role, savedSig[role]?.img);
     });
@@ -734,7 +839,7 @@ function renderDayPrintView(def, tanggal, group, shiftsData){
     if(found && rec.dataJson){ try{ savedItems = JSON.parse(rec.dataJson); }catch(e){} }
     html += `
       <div style="page-break-inside:avoid;margin:24px 0;">
-        <h3>Shift ${s.label} ${found && rec.group ? `&nbsp; <small style="color:var(--muted);font-weight:400;">Group ${rec.group}</small>`:""} &nbsp; <span class="status-badge ${found && rec.status==='Final' ? 'final':'draft'}">${found ? rec.status : 'BELUM ADA DATA'}</span></h3>
+        <h3>Shift ${s.label} ${found && rec.group ? `&nbsp; <small style="color:var(--muted);font-weight:400;">Group ${rec.group}</small>`:""} &nbsp; <span class="status-badge ${statusBadgeClass(found ? rec.status : 'Draft')}">${found ? rec.status : 'BELUM ADA DATA'}</span></h3>
         ${buildPrintItemsTable(def, savedItems)}
         ${found ? buildPrintSigBlock(rec.signatures) : ''}
       </div>
@@ -753,7 +858,7 @@ function markDirty(){
   const note = document.getElementById("autosaveNote");
   if(note) note.textContent = "Ada perubahan belum tersimpan...";
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>saveDraft(false), 2500);
+  saveTimer = setTimeout(()=>saveProgress(false), 2500);
 }
 
 function collectFormData(){
@@ -780,8 +885,18 @@ function collectFormData(){
   return {dataJson: JSON.stringify(data), signatures: JSON.stringify(signatures)};
 }
 
-async function saveDraft(manual){
-  if(!canEditRoleOrEngineer()) return;
+// Saves the current items/handover/signatures WITHOUT changing the
+// report's status - this is what autosave uses, and what the "Simpan"
+// button in the savebar calls, at every stage of the tiered approval
+// chain (Draft, Menunggu Supervisor, Menunggu Superintendent all use
+// this same function; only the STAGE-ADVANCE action below changes
+// status). Whether the current role is even allowed to save right now
+// is enforced server-side (and mirrored client-side via
+// isActiveRoleForStatus, which is what decides whether the "Simpan"
+// button is shown at all).
+async function saveProgress(manual){
+  const statusEff = (CURRENT.record && CURRENT.record.found) ? CURRENT.record.status : "Draft";
+  if(!isActiveRoleForStatus(SESSION.role, statusEff)) return;
   if(!CURRENT.group){ if(manual) alert("Pilih Group terlebih dahulu sebelum menyimpan."); return; }
   const note = document.getElementById("autosaveNote");
   if(manual && note) note.innerHTML = `<span class="spinner"></span> Menyimpan...`;
@@ -789,10 +904,10 @@ async function saveDraft(manual){
     checklistName: CURRENT.checklistKey, tanggal: CURRENT.tanggal, shift: CURRENT.shift, group: CURRENT.group
   }, collectFormData());
   try{
-    const data = await api("saveDraft", payload);
+    const data = await api("saveProgress", payload);
     CURRENT.record = data;
     dirty = false;
-    if(note) note.textContent = "Tersimpan sebagai draft • " + new Date().toLocaleTimeString();
+    if(note) note.textContent = "Tersimpan • " + new Date().toLocaleTimeString();
     if(manual) refreshStatusBadge();
   }catch(e){
     if(note) note.innerHTML = `<span style="color:var(--bad)">Gagal menyimpan: ${e.message}</span>`;
@@ -804,16 +919,32 @@ function refreshStatusBadge(){
   renderChecklistForm();
 }
 
-async function submitFinal(){
+// Pushes the report to the NEXT stage in the tiered approval chain
+// (STAGE_NEXT[currentStatus]) - Operator sends Draft to Supervisor,
+// Supervisor sends it to Superintendent, Superintendent finalizes it.
+// Whichever stage applies right now is the only one ever offered - see
+// STAGE_NEXT and the single button rendered for it in renderChecklistForm.
+async function advanceStage(){
+  const statusEff = (CURRENT.record && CURRENT.record.found) ? CURRENT.record.status : "Draft";
+  const stageInfo = STAGE_NEXT[statusEff];
+  if(!stageInfo) return;
   if(!CURRENT.group){ alert("Pilih Group terlebih dahulu sebelum mengirim laporan."); return; }
-  if(!confirm("Kirim laporan sebagai FINAL? Setelah final, operator & supervisor tidak bisa mengubah/melihat lagi (kecuali dibuka kembali oleh Engineer).")) return;
+  // Quick local check so a missing signature doesn't need a round-trip to
+  // the server to be caught (the server enforces this too either way).
+  const pad = CURRENT.sigPads[stageInfo.needsSig];
+  const hasSig = pad && (pad.hasDrawing || pad.existingImg);
+  if(!hasSig){ alert("Tanda tangan " + ROLE_LABEL[stageInfo.needsSig] + " wajib diisi terlebih dahulu."); return; }
+  const confirmMsg = stageInfo.nextStatus === "Final"
+    ? "Kirim laporan sebagai FINAL? Setelah final, operator & supervisor tidak bisa mengubah/melihat lagi (kecuali dibuka kembali oleh Engineer)."
+    : `${stageInfo.label}? Setelah dikirim, laporan ini tidak bisa diedit lagi kecuali dibuka kembali oleh Engineer.`;
+  if(!confirm(confirmMsg)) return;
   const payload = Object.assign({
     checklistName: CURRENT.checklistKey, tanggal: CURRENT.tanggal, shift: CURRENT.shift, group: CURRENT.group
   }, collectFormData());
   try{
-    const data = await api("submitFinal", payload);
+    const data = await api(stageInfo.action, payload);
     CURRENT.record = data;
-    alert("Laporan berhasil dikirim sebagai FINAL.");
+    alert(stageInfo.nextStatus === "Final" ? "Laporan berhasil dikirim sebagai FINAL." : "Laporan berhasil dikirim ke tahap " + stageInfo.nextStatus + ".");
     renderChecklistForm();
   }catch(e){
     alert("Gagal mengirim: " + e.message);
