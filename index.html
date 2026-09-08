@@ -99,11 +99,23 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 .sig-actions button{font-size:11px;padding:4px 8px;}
 .item-col{min-width:150px;}
 .std-col{color:var(--muted);font-size:12px;min-width:170px;}
+.info-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--border);background:var(--input-bg);color:var(--muted);font-size:11px;cursor:pointer;flex-shrink:0;padding:0;line-height:1;}
+.info-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.item-col-wrap{display:flex;align-items:flex-start;gap:6px;}
+.catatan-cell{display:flex;align-items:center;gap:6px;}
+.catatan-cell .catatan-inp{flex:1;min-width:0;}
+.info-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:pointer;}
+.info-modal-box{background:var(--panel);color:var(--text);border-radius:12px;max-width:420px;width:100%;max-height:70vh;overflow-y:auto;padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.3);cursor:default;}
+.info-modal-title{font-weight:700;font-size:14px;margin-bottom:8px;color:var(--accent);}
+.info-modal-text{font-size:14px;line-height:1.5;white-space:pre-wrap;}
+.info-modal-hint{margin-top:12px;font-size:11px;color:var(--muted);text-align:center;}
 @media(max-width:720px){
   .grid2{grid-template-columns:1fr;}
   .menu-grid{grid-template-columns:1fr;}
   table.chk-table{font-size:12px;}
   .std-col{display:none;}
+  .metode-col{display:none;}
+  .catatan-cell .catatan-inp{min-width:90px;}
 }
 @media print{
   .topbar,.savebar,.formbar button,.no-print{display:none !important;}
@@ -167,6 +179,41 @@ function el(html){
 // (e.g. Asia/Jakarta, UTC+7) whenever the local time is near midnight.
 // That mismatch was the root cause of "Tanggal 7 Pagi doesn't show the
 // handover note from Tanggal 6 Malam" - see prevShiftKey() below.
+/* ======================= INFO MODAL (mobile-friendly "read full text") =======================
+ * Used for 2 things that get cut off or hidden on a narrow phone screen:
+ *  - the "Standar Pemeriksaan" column, which is hidden entirely below
+ *    720px (see .std-col{display:none} in the CSS) - tapping the little
+ *    ℹ button next to an item's name shows it here instead.
+ *  - the "Catatan / Penanganan" text input, which can hold a long
+ *    carried-over note from the previous shift that gets visually
+ *    truncated inside the narrow input box - tapping the 🔍 button next
+ *    to it shows the input's current full value here (read-only; keep
+ *    editing in the input itself as usual).
+ * Tapping ANYWHERE on the overlay (including the box itself) closes it,
+ * per request - there's no separate "close" button needed. */
+function showInfoModal(title, text){
+  closeInfoModal();
+  const overlay = document.createElement("div");
+  overlay.className = "info-modal-overlay";
+  overlay.onclick = closeInfoModal;
+  const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  overlay.innerHTML = `
+    <div class="info-modal-box">
+      <div class="info-modal-title">${esc(title)}</div>
+      <div class="info-modal-text">${esc(text) || "(kosong)"}</div>
+      <div class="info-modal-hint">Ketuk di mana saja untuk menutup</div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+function closeInfoModal(){
+  const e = document.querySelector(".info-modal-overlay");
+  if(e) e.remove();
+}
+function showCatatanModal(idx){
+  const inp = document.getElementById("catatan-"+idx);
+  showInfoModal("Catatan / Penanganan", inp ? inp.value : "");
+}
+
 function localDateStr(d){
   const y = d.getFullYear();
   const m = String(d.getMonth()+1).padStart(2,"0");
@@ -660,10 +707,18 @@ function renderChecklistForm(){
       carriedOver = true;
     }
     const kodeBadges = it.kode.split("").map(k=>`<span class="kode-badge" title="${KODE_KETERANGAN[k]||k}">${k}</span>`).join(" ");
+    const escAttr = s => String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const itemTitleAttr = escAttr(it.item);
+    const stdAttr = escAttr(it.std || "(tidak ada standar tercatat)");
     rows += `
       <tr${carriedOver ? ' style="box-shadow:inset 3px 0 0 var(--bad);"' : ''}>
-        <td class="item-col">${it.pos ? `<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</td>
-        <td>${kodeBadges}</td>
+        <td class="item-col">
+          <div class="item-col-wrap">
+            <div>${it.pos ? `<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</div>
+            <button type="button" class="info-btn" title="Lihat standar pemeriksaan" onclick="showInfoModal(this.dataset.title, this.dataset.std)" data-title="${itemTitleAttr}" data-std="${stdAttr}">ℹ</button>
+          </div>
+        </td>
+        <td class="metode-col">${kodeBadges}</td>
         <td class="std-col">${it.std || ""}</td>
         <td>
           <select class="hasil-sel ${(s.h||"").toLowerCase()}" data-idx="${idx}" data-slot="awal" onchange="onHasilChange(this)" ${itemsReadOnly?"disabled":""}>
@@ -673,7 +728,12 @@ function renderChecklistForm(){
             <option value="O" ${s.h==="O"?"selected":""}>O (Tertangani)</option>
           </select>
         </td>
-        <td><input class="catatan-inp" data-idx="${idx}" data-slot="awal" placeholder="Catatan / penanganan" value="${catatanVal.replace(/"/g,'&quot;')}" oninput="markDirty()" ${itemsReadOnly?"disabled":""}></td>
+        <td>
+          <div class="catatan-cell">
+            <input class="catatan-inp" id="catatan-${idx}" data-idx="${idx}" data-slot="awal" placeholder="Catatan / penanganan" value="${catatanVal.replace(/"/g,'&quot;')}" oninput="markDirty()" ${itemsReadOnly?"disabled":""}>
+            <button type="button" class="info-btn" title="Lihat catatan lengkap" onclick="showCatatanModal(${idx})">🔍</button>
+          </div>
+        </td>
       </tr>`;
   });
 
@@ -684,7 +744,7 @@ function renderChecklistForm(){
       <thead>
         <tr>
           <th>Item Pemeriksaan</th>
-          <th>Metode</th>
+          <th class="metode-col">Metode</th>
           <th>Standar Pemeriksaan</th>
           <th>Hasil</th>
           <th>Catatan / Penanganan</th>
