@@ -114,7 +114,6 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
   .menu-grid{grid-template-columns:1fr;}
   table.chk-table{font-size:12px;}
   .std-col{display:none;}
-  .metode-col{display:none;}
   .catatan-cell .catatan-inp{min-width:90px;}
 }
 @media print{
@@ -709,13 +708,15 @@ function renderChecklistForm(){
     const kodeBadges = it.kode.split("").map(k=>`<span class="kode-badge" title="${KODE_KETERANGAN[k]||k}">${k}</span>`).join(" ");
     const escAttr = s => String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     const itemTitleAttr = escAttr(it.item);
-    const stdAttr = escAttr(it.std || "(tidak ada standar tercatat)");
+    const metodeText = it.kode.split("").map(k=>`${k} (${KODE_KETERANGAN[k]||k})`).join(", ");
+    const modalBody = `Metode Pemeriksaan: ${metodeText}\n\nStandar Pemeriksaan:\n${it.std || "(tidak ada standar tercatat)"}`;
+    const bodyAttr = escAttr(modalBody);
     rows += `
       <tr${carriedOver ? ' style="box-shadow:inset 3px 0 0 var(--bad);"' : ''}>
         <td class="item-col">
           <div class="item-col-wrap">
             <div>${it.pos ? `<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</div>
-            <button type="button" class="info-btn" title="Lihat standar pemeriksaan" onclick="showInfoModal(this.dataset.title, this.dataset.std)" data-title="${itemTitleAttr}" data-std="${stdAttr}">ℹ</button>
+            <button type="button" class="info-btn" title="Lihat metode & standar pemeriksaan" onclick="showInfoModal(this.dataset.title, this.dataset.body)" data-title="${itemTitleAttr}" data-body="${bodyAttr}">ℹ</button>
           </div>
         </td>
         <td class="metode-col">${kodeBadges}</td>
