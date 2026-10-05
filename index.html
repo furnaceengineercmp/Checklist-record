@@ -625,15 +625,17 @@ function isLockedForMe(rec){
   return (SESSION.role === "operator" || SESSION.role === "supervisor");
 }
 
-// Only Operator/Supervisor ever edit the actual checklist items, and only
-// while the report is still at "Draft" (before Operator sends it up the
-// chain) - Superintendent NEVER edits items, only signs their own box at
-// their own stage. Engineer can always edit everything, at any stage
-// (full override), same as it can always sign any box.
-const ITEM_EDIT_ROLES = ["operator","supervisor"];
+// Items (Hasil/Catatan) are editable by whoever is the ACTIVE role for
+// the report's current stage - same rule as isActiveRoleForStatus()
+// already uses for "Simpan"/signing: Operator (or Supervisor) at Draft,
+// Supervisor at Menunggu Supervisor, Superintendent at Menunggu
+// Superintendent. So once Operator sends it up the chain, Operator can
+// no longer edit, but whichever role it's now WAITING ON can - including
+// fixing a mistake the Operator made - right up until THEY send it to
+// the next stage, at which point it locks for them too. Engineer can
+// always edit everything, at any stage (full override).
 function itemsReadOnlyFor(statusEff){
-  if(SESSION.role === "engineer") return false;
-  return !(statusEff === "Draft" && ITEM_EDIT_ROLES.indexOf(SESSION.role) !== -1);
+  return !isActiveRoleForStatus(SESSION.role, statusEff);
 }
 // Which status each role's OWN signature box requires to be editable -
 // Engineer can edit any box at any status.
