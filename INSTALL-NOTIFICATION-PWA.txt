@@ -1,0 +1,74 @@
+CHECKLIST FURNACE - NOTIFICATION + PWA V2
+
+1. GOOGLE APPS SCRIPT
+- Replace the existing Code.gs with the included COMPLETE Code.gs.
+- Deploy a NEW VERSION of the existing Web App deployment after saving.
+- Keep Execute as: Me.
+- Keep access: Anyone.
+- Do not create a second login system.
+
+2. SHEET "TATA CARA"
+- Column P must be the SHIFT column.
+- Header P1: SHIFT
+- For SUPERVISOR and SUPERINTENDENT, fill P with:
+  Pagi / Siang / Malam
+  (also accepts 1=Pagi, 2=Siang, 3=Malam)
+- Operator SHIFT can be left blank. Operators are NOT restricted by shift.
+
+3. GROUP SCHEDULE
+The notification system uses the same Group rotation logic already used by
+the Demografi sheet:
+- 4 groups
+- Pagi / Siang / Malam / Off
+- anchored to 2026-09-08
+This keeps notifications and Demografi consistent.
+
+4. NOTIFICATION LOGIC
+- Supervisor receives the notification queue only when the current clock is
+  inside the SHIFT assigned in TATA CARA.
+- Superintendent behaves the same way.
+- Current operational date is used; 00:00-06:59 belongs to the previous
+  day's Malam shift.
+- The expected Group is calculated from the same rotation used by Demografi.
+- If a checklist is waiting for the logged-in role, it becomes actionable
+  (red bell count).
+- If it is still Draft / waiting for another stage / not yet filled, it is
+  shown as awareness information.
+- If another Group filled it, the notification shows a Group mismatch.
+- Clicking an actionable notification opens the exact checklist/date/shift.
+
+5. FRONTEND
+Replace the existing index.html with the included COMPLETE index.html.
+
+6. PWA FILES FOR GITHUB PAGES
+Upload these beside index.html:
+- manifest.json
+- sw.js
+- pwa.js
+- icons/icon-192.png
+- icons/icon-512.png
+
+Expected repository:
+Checklist-record/
+  index.html
+  manifest.json
+  sw.js
+  pwa.js
+  icons/
+    icon-192.png
+    icon-512.png
+
+7. IMPORTANT
+This V2 provides in-app notifications and browser notifications while the
+app is active/open. True background server push while the app is completely
+closed still requires Web Push/FCM/VAPID backend integration; that is the
+next phase.
+
+8. TEST
+- Login as a Supervisor whose P column is Pagi.
+- Test during 07:00-15:00.
+- The bell should appear.
+- Create/submit a checklist for the current operational date + Pagi so its
+  status becomes "Menunggu Supervisor".
+- The bell count should become 1.
+- Click the notification; it should open that checklist directly.

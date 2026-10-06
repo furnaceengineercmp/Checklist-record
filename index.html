@@ -109,6 +109,28 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 .info-modal-title{font-weight:700;font-size:14px;margin-bottom:8px;color:var(--accent);}
 .info-modal-text{font-size:14px;line-height:1.5;white-space:pre-wrap;}
 .info-modal-hint{margin-top:12px;font-size:11px;color:var(--muted);text-align:center;}
+/* ================= ROLE/SHIFT NOTIFICATIONS ================= */
+.notif-wrap{position:relative;display:inline-flex;align-items:center;}
+.notif-btn{position:relative;min-width:40px;}
+.notif-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:10px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:18px;border:2px solid var(--panel);}
+.notif-panel{position:fixed;right:16px;top:58px;width:min(430px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 35px rgba(0,0,0,.18);z-index:200;padding:12px;}
+.notif-head{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 10px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.notif-head b{font-size:14px;}
+.notif-meta{font-size:11px;color:var(--muted);}
+.notif-item{border:1px solid var(--border);border-radius:10px;padding:10px;margin:8px 0;background:var(--input-bg);}
+.notif-item.actionable{cursor:pointer;border-color:var(--accent);}
+.notif-item.actionable:hover{background:var(--head);}
+.notif-item .nt-title{font-weight:700;font-size:13px;margin-bottom:4px;}
+.notif-item .nt-body{font-size:12px;line-height:1.45;color:var(--muted);}
+.notif-item .nt-tag{display:inline-block;margin-top:7px;padding:3px 7px;border-radius:12px;font-size:10px;font-weight:700;background:var(--head);color:var(--muted);}
+.notif-item.actionable .nt-tag{background:#dbeafe;color:#1e40af;}
+.notif-empty{padding:18px 8px;text-align:center;color:var(--muted);font-size:12px;}
+.notif-warn{margin:8px 0;padding:9px 10px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:12px;}
+[data-theme="dark"] .notif-warn{background:#3a2515;color:#fdba74;}
+@media(max-width:720px){
+  .notif-panel{right:8px;top:56px;width:calc(100vw - 16px);max-height:75vh;}
+}
+
 @media(max-width:720px){
   .grid2{grid-template-columns:1fr;}
   .menu-grid{grid-template-columns:1fr;}
@@ -133,10 +155,14 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
   <div class="brand">🔥 Checklist Furnace Area <small id="envTag"></small></div>
   <div class="userbox">
     <span id="userInfo"></span>
+    <div class="notif-wrap hidden" id="notifWrap">
+      <button class="icon-btn notif-btn" id="btnNotif" onclick="toggleNotifications()" title="Notifikasi">🔔<span class="notif-count hidden" id="notifCount">0</span></button>
+    </div>
     <button class="icon-btn" onclick="toggleTheme()">🌓</button>
     <button class="icon-btn hidden" id="btnLogout" onclick="doLogout()">Keluar</button>
   </div>
 </div>
+<div id="notifPanel" class="notif-panel hidden"></div>
 
 <div class="wrap" id="app"></div>
 
@@ -189,6 +215,10 @@ let SESSION = JSON.parse(localStorage.getItem("cf_session") || "null");
 let CURRENT = { checklistKey:null, tanggal:null, shift:null, group:null, record:null, sigPads:{}, prevHandover:null, prevOpenItems:{} };
 let saveTimer = null;
 let dirty = false;
+let notificationTimer = null;
+let notificationData = null;
+let notificationLastKey = "";
+let notificationFirstLoad = true;
 
 /* ======================= HELPERS ======================= */
 function el(html){
@@ -331,20 +361,154 @@ async function api(action, payload){
 function setUserBox(){
   const box = document.getElementById("userInfo");
   const btnLogout = document.getElementById("btnLogout");
+  const notifWrap = document.getElementById("notifWrap");
   if(SESSION){
-    box.innerHTML = `<b>${SESSION.fullName}</b> <span class="pill">${ROLE_LABEL[SESSION.role]||SESSION.role}</span>`;
+    box.innerHTML = `<b>${SESSION.fullName}</b> <span class="pill">${ROLE_LABEL[SESSION.role]||SESSION.role}${SESSION.shift ? " • "+SESSION.shift : ""}</span>`;
     btnLogout.classList.remove("hidden");
+    if(notifWrap && ["supervisor","superintendent"].includes(SESSION.role)) notifWrap.classList.remove("hidden");
+    else if(notifWrap) notifWrap.classList.add("hidden");
   } else {
     box.innerHTML = "";
     btnLogout.classList.add("hidden");
+    if(notifWrap) notifWrap.classList.add("hidden");
+    const panel = document.getElementById("notifPanel");
+    if(panel) panel.classList.add("hidden");
   }
 }
 
 function doLogout(){
+  if(notificationTimer) clearInterval(notificationTimer);
+  notificationTimer = null;
+  notificationData = null;
+  notificationLastKey = "";
+  notificationFirstLoad = true;
   SESSION = null;
   localStorage.removeItem("cf_session");
   setUserBox();
   renderLogin();
+}
+
+
+/* ======================= ROLE/SHIFT NOTIFICATIONS ======================= */
+function initNotificationPolling(){
+  if(notificationTimer) clearInterval(notificationTimer);
+  notificationTimer = null;
+  notificationFirstLoad = true;
+  notificationLastKey = "";
+  if(!SESSION || !["supervisor","superintendent"].includes(SESSION.role)) return;
+  refreshNotifications(true);
+  notificationTimer = setInterval(()=>refreshNotifications(true), 60000);
+}
+
+async function refreshNotifications(silent){
+  if(!SESSION || !["supervisor","superintendent"].includes(SESSION.role)) return;
+  try{
+    const data = await api("getNotifications", {});
+    notificationData = data || {items:[],count:0};
+    const actionableIds = (notificationData.items||[]).filter(x=>x.actionable).map(x=>x.id).sort();
+    const key = actionableIds.join("|");
+    const isNew = !notificationFirstLoad && key !== notificationLastKey && actionableIds.length > 0;
+    notificationLastKey = key;
+    notificationFirstLoad = false;
+    renderNotificationBadge();
+    if(isNew) showBrowserNotification(notificationData);
+    if(!document.getElementById("notifPanel").classList.contains("hidden")) renderNotificationPanel();
+  }catch(e){
+    // Notification failure must never interrupt the checklist itself.
+  }
+}
+
+function renderNotificationBadge(){
+  const count = notificationData && Number(notificationData.count || 0) || 0;
+  const badge = document.getElementById("notifCount");
+  if(!badge) return;
+  badge.textContent = count > 99 ? "99+" : String(count);
+  badge.classList.toggle("hidden", count <= 0);
+}
+
+function toggleNotifications(){
+  const panel = document.getElementById("notifPanel");
+  if(!panel) return;
+  if(panel.classList.contains("hidden")){
+    renderNotificationPanel();
+    panel.classList.remove("hidden");
+  }else{
+    panel.classList.add("hidden");
+  }
+}
+
+function renderNotificationPanel(){
+  const panel = document.getElementById("notifPanel");
+  if(!panel) return;
+  const d = notificationData;
+  if(!d){
+    panel.innerHTML = `<div class="notif-empty"><span class="spinner"></span> Memuat notifikasi...</div>`;
+    return;
+  }
+  const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  let html = `<div class="notif-head"><b>🔔 Notifikasi</b><span class="notif-meta">${esc(d.currentShift||"")} • ${esc(d.operationalDate||"")}</span></div>`;
+  if(d.configured === false){
+    html += `<div class="notif-warn">⚠️ ${esc(d.message||"SHIFT belum diatur.")}</div>`;
+  }else if(d.active === false){
+    html += `<div class="notif-warn">ℹ️ SHIFT akun Anda: <b>${esc(d.assignedShift||"-")}</b>. Saat ini sistem berada di <b>${esc(d.currentShift||"-")}</b>. Notifikasi akan aktif saat masuk jam shift akun Anda.</div>`;
+  }
+  const items = d.items || [];
+  if(!items.length){
+    html += `<div class="notif-empty">Tidak ada checklist yang perlu diperhatikan saat ini.</div>`;
+  }else{
+    html += items.map((item,idx)=>{
+      const tag = item.actionable ? "Perlu tindakan" : (item.type === "missing" ? "Belum diisi" : "Monitoring");
+      const cls = item.actionable ? "notif-item actionable" : "notif-item";
+      return `<div class="${cls}" ${item.actionable ? `onclick="openNotificationByIndex(${idx})"` : ""}>
+        <div class="nt-title">${item.actionable ? "🔴" : "ℹ️"} ${esc(item.title)}</div>
+        <div class="nt-body">${esc(item.message)}</div>
+        <span class="nt-tag">${esc(tag)}</span>
+      </div>`;
+    }).join("");
+  }
+  html += `<div class="notif-meta" style="padding:6px 4px 2px;">Server: ${esc(d.serverTime||"")}</div>`;
+  panel.innerHTML = html;
+}
+
+function openNotificationByIndex(idx){
+  const item = notificationData && notificationData.items ? notificationData.items[idx] : null;
+  openNotificationChecklist(item);
+}
+
+async function openNotificationChecklist(item){
+  if(!item || !item.actionable) return;
+  const panel = document.getElementById("notifPanel");
+  if(panel) panel.classList.add("hidden");
+  try{
+    await openChecklistSetup(item.checklistName);
+    const dateEl = document.getElementById("su-tanggal");
+    const shiftEl = document.getElementById("su-shift");
+    if(dateEl) dateEl.value = item.tanggal;
+    if(shiftEl) shiftEl.value = item.shift;
+    await openChecklistDirect();
+  }catch(e){
+    alert("Gagal membuka checklist dari notifikasi: " + e.message);
+  }
+}
+
+async function showBrowserNotification(data){
+  try{
+    if(!("Notification" in window)) return;
+    if(Notification.permission === "default") await Notification.requestPermission();
+    if(Notification.permission !== "granted") return;
+    const item = (data.items||[]).find(x=>x.actionable);
+    if(!item) return;
+    const title = "Checklist Furnace - Perlu Pengecekan";
+    const body = item.message;
+    if("serviceWorker" in navigator){
+      const reg = await navigator.serviceWorker.getRegistration("/Checklist-record/");
+      if(reg && reg.showNotification){
+        await reg.showNotification(title,{body,icon:"/Checklist-record/icons/icon-192.png",tag:item.id,data:{url:"/Checklist-record/"}});
+        return;
+      }
+    }
+    new Notification(title,{body});
+  }catch(e){ /* browser notification is optional */ }
 }
 
 /* ======================= ROUTER ======================= */
@@ -353,6 +517,7 @@ function boot(){
   if(!SESSION){ renderLogin(); return; }
   loadChecklistDefs(); // fire-and-forget - kicks off the fetch early so it's likely ready by the time a checklist is opened
   renderHome();
+  initNotificationPolling();
 }
 boot();
 
@@ -387,11 +552,12 @@ async function handleLogin(){
   if(!username || !password){ msg.innerHTML = `<div class="msg err">Username & password wajib diisi.</div>`; return; }
   try{
     const data = await api("login", {username, password, device: navigator.userAgent});
-    SESSION = data; // {token, username, fullName, role, jobTitle}
+    SESSION = data; // {token, username, fullName, role, jobTitle, shift}
     localStorage.setItem("cf_session", JSON.stringify(SESSION));
     loadChecklistDefs(); // fire-and-forget - same as boot()
     setUserBox();
     renderHome();
+    initNotificationPolling();
   }catch(e){
     msg.innerHTML = `<div class="msg err">${e.message}</div>`;
   }
@@ -833,7 +999,7 @@ function renderChecklistForm(){
   const stageInfo = STAGE_NEXT[statusEff];
   const canAdvance = stageInfo && (SESSION.role === stageInfo.byRole || SESSION.role === "engineer");
   const canRevert = statusEff !== "Draft" && SESSION.role === "engineer";
-  const canExportPdf = ["supervisor","superintendent","engineer"].includes(SESSION.role);
+  const canExportPdf = ["supervisor","superintendent"].includes(SESSION.role);
   const canExportDay = SESSION.role === "engineer";
   const viewOnlyNote = (!canSaveProgress && !isFinal)
     ? "Mode lihat saja - menunggu " + (STAGE_ACTIVE_ROLE[statusEff]||[]).map(r=>ROLE_LABEL[r]).join("/") + "."
