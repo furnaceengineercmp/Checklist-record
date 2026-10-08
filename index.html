@@ -501,7 +501,7 @@ function renderHome(){
  * mengubah filter tidak perlu memanggil server lagi. Record belum ada
  * datanya, jadi ditampilkan sebagai "belum tersedia". */
 const DASH_STATE_LABEL = {belum:"Belum isi", progress:"Progress", salah:"Perlu dicek", selesai:"Selesai"};
-let DASH = {rows:[], checklists:[], filter:{chk:"", shift:"", state:"todo"}};
+let DASH = {rows:[], checklists:[], filter:{chk:"", shift:"", grp:"", state:"todo"}};
 
 function dashEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
@@ -604,6 +604,11 @@ function renderDashboardBody(){
       <select id="dash-f-shift" onchange="setDashFilter('shift',this.value)" style="flex:1;min-width:130px;">
         <option value="">Semua shift</option><option>Pagi</option><option>Siang</option><option>Malam</option>
       </select>
+      <select id="dash-f-grp" onchange="setDashFilter('grp',this.value)" style="flex:1;min-width:130px;">
+        <option value="">Semua group terjadwal</option>
+        <option value="1">Group 1 (terjadwal)</option><option value="2">Group 2 (terjadwal)</option>
+        <option value="3">Group 3 (terjadwal)</option><option value="4">Group 4 (terjadwal)</option>
+      </select>
       <select id="dash-f-state" onchange="setDashFilter('state',this.value)" style="flex:1;min-width:150px;">
         <option value="todo">Perlu tindakan (belum/progress/cek)</option>
         <option value="all">Semua</option>
@@ -617,6 +622,7 @@ function renderDashboardBody(){
   `;
   document.getElementById("dash-f-chk").value = DASH.filter.chk;
   document.getElementById("dash-f-shift").value = DASH.filter.shift;
+  document.getElementById("dash-f-grp").value = DASH.filter.grp;
   document.getElementById("dash-f-state").value = DASH.filter.state;
   renderDashboardDetail();
 }
@@ -635,6 +641,7 @@ function renderDashboardDetail(){
   let rows = DASH.rows.filter(r=>{
     if(f.chk && r.key !== f.chk) return false;
     if(f.shift && r.shift !== f.shift) return false;
+    if(f.grp && String(r.schedGroup) !== f.grp) return false;
     if(f.state === "todo") return r.state !== "selesai";
     if(f.state !== "all") return r.state === f.state;
     return true;
