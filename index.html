@@ -104,33 +104,25 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 .item-col-wrap{display:flex;align-items:flex-start;gap:6px;}
 .catatan-cell{display:flex;align-items:center;gap:6px;}
 .catatan-cell .catatan-inp{flex:1;min-width:0;}
+.dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0 4px;}
+.dash-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;box-shadow:var(--shadow);}
+.dash-card:hover{border-color:var(--accent);}
+.dash-card .num{font-size:26px;font-weight:700;}
+.dash-card .lbl{font-size:12px;color:var(--muted);}
+.dash-card.c-selesai .num{color:var(--ok);} .dash-card.c-progress .num{color:var(--accent);}
+.dash-card.c-belum .num{color:var(--bad);} .dash-card.c-salah .num{color:var(--warn);}
+.pill{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11.5px;font-weight:700;}
+.pill.selesai{background:#dcfce7;color:#166534;} .pill.progress{background:#dbeafe;color:#1e40af;}
+.pill.belum{background:#fee2e2;color:#991b1b;} .pill.salah{background:#fef3c7;color:#92400e;}
+[data-theme="dark"] .pill.selesai{background:#12301f;color:#4ade80;} [data-theme="dark"] .pill.progress{background:#1e2f4d;color:#60a5fa;}
+[data-theme="dark"] .pill.belum{background:#3b1717;color:#f87171;} [data-theme="dark"] .pill.salah{background:#3a2c0f;color:#fbbf24;}
+tr.dash-row.belum td:first-child{box-shadow:inset 3px 0 0 var(--bad);} tr.dash-row.salah td:first-child{box-shadow:inset 3px 0 0 var(--warn);}
+tr.dash-row.progress td:first-child{box-shadow:inset 3px 0 0 var(--accent);} tr.dash-row.selesai td:first-child{box-shadow:inset 3px 0 0 var(--ok);}
 .info-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:pointer;}
 .info-modal-box{background:var(--panel);color:var(--text);border-radius:12px;max-width:420px;width:100%;max-height:70vh;overflow-y:auto;padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.3);cursor:default;}
 .info-modal-title{font-weight:700;font-size:14px;margin-bottom:8px;color:var(--accent);}
 .info-modal-text{font-size:14px;line-height:1.5;white-space:pre-wrap;}
 .info-modal-hint{margin-top:12px;font-size:11px;color:var(--muted);text-align:center;}
-/* ================= ROLE/SHIFT NOTIFICATIONS ================= */
-.notif-wrap{position:relative;display:inline-flex;align-items:center;}
-.notif-btn{position:relative;min-width:40px;}
-.notif-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:10px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:18px;border:2px solid var(--panel);}
-.notif-panel{position:fixed;right:16px;top:58px;width:min(430px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 35px rgba(0,0,0,.18);z-index:200;padding:12px;}
-.notif-head{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 10px;border-bottom:1px solid var(--border);margin-bottom:8px;}
-.notif-head b{font-size:14px;}
-.notif-meta{font-size:11px;color:var(--muted);}
-.notif-item{border:1px solid var(--border);border-radius:10px;padding:10px;margin:8px 0;background:var(--input-bg);}
-.notif-item.actionable{cursor:pointer;border-color:var(--accent);}
-.notif-item.actionable:hover{background:var(--head);}
-.notif-item .nt-title{font-weight:700;font-size:13px;margin-bottom:4px;}
-.notif-item .nt-body{font-size:12px;line-height:1.45;color:var(--muted);}
-.notif-item .nt-tag{display:inline-block;margin-top:7px;padding:3px 7px;border-radius:12px;font-size:10px;font-weight:700;background:var(--head);color:var(--muted);}
-.notif-item.actionable .nt-tag{background:#dbeafe;color:#1e40af;}
-.notif-empty{padding:18px 8px;text-align:center;color:var(--muted);font-size:12px;}
-.notif-warn{margin:8px 0;padding:9px 10px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:12px;}
-[data-theme="dark"] .notif-warn{background:#3a2515;color:#fdba74;}
-@media(max-width:720px){
-  .notif-panel{right:8px;top:56px;width:calc(100vw - 16px);max-height:75vh;}
-}
-
 @media(max-width:720px){
   .grid2{grid-template-columns:1fr;}
   .menu-grid{grid-template-columns:1fr;}
@@ -155,14 +147,10 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
   <div class="brand">🔥 Checklist Furnace Area <small id="envTag"></small></div>
   <div class="userbox">
     <span id="userInfo"></span>
-    <div class="notif-wrap hidden" id="notifWrap">
-      <button class="icon-btn notif-btn" id="btnNotif" onclick="toggleNotifications()" title="Notifikasi">🔔<span class="notif-count hidden" id="notifCount">0</span></button>
-    </div>
     <button class="icon-btn" onclick="toggleTheme()">🌓</button>
     <button class="icon-btn hidden" id="btnLogout" onclick="doLogout()">Keluar</button>
   </div>
 </div>
-<div id="notifPanel" class="notif-panel hidden"></div>
 
 <div class="wrap" id="app"></div>
 
@@ -215,10 +203,6 @@ let SESSION = JSON.parse(localStorage.getItem("cf_session") || "null");
 let CURRENT = { checklistKey:null, tanggal:null, shift:null, group:null, record:null, sigPads:{}, prevHandover:null, prevOpenItems:{} };
 let saveTimer = null;
 let dirty = false;
-let notificationTimer = null;
-let notificationData = null;
-let notificationLastKey = "";
-let notificationFirstLoad = true;
 
 /* ======================= HELPERS ======================= */
 function el(html){
@@ -361,154 +345,20 @@ async function api(action, payload){
 function setUserBox(){
   const box = document.getElementById("userInfo");
   const btnLogout = document.getElementById("btnLogout");
-  const notifWrap = document.getElementById("notifWrap");
   if(SESSION){
-    box.innerHTML = `<b>${SESSION.fullName}</b> <span class="pill">${ROLE_LABEL[SESSION.role]||SESSION.role}${SESSION.shift ? " • "+SESSION.shift : ""}</span>`;
+    box.innerHTML = `<b>${SESSION.fullName}</b> <span class="pill">${ROLE_LABEL[SESSION.role]||SESSION.role}</span>`;
     btnLogout.classList.remove("hidden");
-    if(notifWrap && ["supervisor","superintendent"].includes(SESSION.role)) notifWrap.classList.remove("hidden");
-    else if(notifWrap) notifWrap.classList.add("hidden");
   } else {
     box.innerHTML = "";
     btnLogout.classList.add("hidden");
-    if(notifWrap) notifWrap.classList.add("hidden");
-    const panel = document.getElementById("notifPanel");
-    if(panel) panel.classList.add("hidden");
   }
 }
 
 function doLogout(){
-  if(notificationTimer) clearInterval(notificationTimer);
-  notificationTimer = null;
-  notificationData = null;
-  notificationLastKey = "";
-  notificationFirstLoad = true;
   SESSION = null;
   localStorage.removeItem("cf_session");
   setUserBox();
   renderLogin();
-}
-
-
-/* ======================= ROLE/SHIFT NOTIFICATIONS ======================= */
-function initNotificationPolling(){
-  if(notificationTimer) clearInterval(notificationTimer);
-  notificationTimer = null;
-  notificationFirstLoad = true;
-  notificationLastKey = "";
-  if(!SESSION || !["supervisor","superintendent"].includes(SESSION.role)) return;
-  refreshNotifications(true);
-  notificationTimer = setInterval(()=>refreshNotifications(true), 60000);
-}
-
-async function refreshNotifications(silent){
-  if(!SESSION || !["supervisor","superintendent"].includes(SESSION.role)) return;
-  try{
-    const data = await api("getNotifications", {});
-    notificationData = data || {items:[],count:0};
-    const actionableIds = (notificationData.items||[]).filter(x=>x.actionable).map(x=>x.id).sort();
-    const key = actionableIds.join("|");
-    const isNew = !notificationFirstLoad && key !== notificationLastKey && actionableIds.length > 0;
-    notificationLastKey = key;
-    notificationFirstLoad = false;
-    renderNotificationBadge();
-    if(isNew) showBrowserNotification(notificationData);
-    if(!document.getElementById("notifPanel").classList.contains("hidden")) renderNotificationPanel();
-  }catch(e){
-    // Notification failure must never interrupt the checklist itself.
-  }
-}
-
-function renderNotificationBadge(){
-  const count = notificationData && Number(notificationData.count || 0) || 0;
-  const badge = document.getElementById("notifCount");
-  if(!badge) return;
-  badge.textContent = count > 99 ? "99+" : String(count);
-  badge.classList.toggle("hidden", count <= 0);
-}
-
-function toggleNotifications(){
-  const panel = document.getElementById("notifPanel");
-  if(!panel) return;
-  if(panel.classList.contains("hidden")){
-    renderNotificationPanel();
-    panel.classList.remove("hidden");
-  }else{
-    panel.classList.add("hidden");
-  }
-}
-
-function renderNotificationPanel(){
-  const panel = document.getElementById("notifPanel");
-  if(!panel) return;
-  const d = notificationData;
-  if(!d){
-    panel.innerHTML = `<div class="notif-empty"><span class="spinner"></span> Memuat notifikasi...</div>`;
-    return;
-  }
-  const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  let html = `<div class="notif-head"><b>🔔 Notifikasi</b><span class="notif-meta">${esc(d.currentShift||"")} • ${esc(d.operationalDate||"")}</span></div>`;
-  if(d.configured === false){
-    html += `<div class="notif-warn">⚠️ ${esc(d.message||"SHIFT belum diatur.")}</div>`;
-  }else if(d.active === false){
-    html += `<div class="notif-warn">ℹ️ SHIFT akun Anda: <b>${esc(d.assignedShift||"-")}</b>. Saat ini sistem berada di <b>${esc(d.currentShift||"-")}</b>. Notifikasi akan aktif saat masuk jam shift akun Anda.</div>`;
-  }
-  const items = d.items || [];
-  if(!items.length){
-    html += `<div class="notif-empty">Tidak ada checklist yang perlu diperhatikan saat ini.</div>`;
-  }else{
-    html += items.map((item,idx)=>{
-      const tag = item.actionable ? "Perlu tindakan" : (item.type === "missing" ? "Belum diisi" : "Monitoring");
-      const cls = item.actionable ? "notif-item actionable" : "notif-item";
-      return `<div class="${cls}" ${item.actionable ? `onclick="openNotificationByIndex(${idx})"` : ""}>
-        <div class="nt-title">${item.actionable ? "🔴" : "ℹ️"} ${esc(item.title)}</div>
-        <div class="nt-body">${esc(item.message)}</div>
-        <span class="nt-tag">${esc(tag)}</span>
-      </div>`;
-    }).join("");
-  }
-  html += `<div class="notif-meta" style="padding:6px 4px 2px;">Server: ${esc(d.serverTime||"")}</div>`;
-  panel.innerHTML = html;
-}
-
-function openNotificationByIndex(idx){
-  const item = notificationData && notificationData.items ? notificationData.items[idx] : null;
-  openNotificationChecklist(item);
-}
-
-async function openNotificationChecklist(item){
-  if(!item || !item.actionable) return;
-  const panel = document.getElementById("notifPanel");
-  if(panel) panel.classList.add("hidden");
-  try{
-    await openChecklistSetup(item.checklistName);
-    const dateEl = document.getElementById("su-tanggal");
-    const shiftEl = document.getElementById("su-shift");
-    if(dateEl) dateEl.value = item.tanggal;
-    if(shiftEl) shiftEl.value = item.shift;
-    await openChecklistDirect();
-  }catch(e){
-    alert("Gagal membuka checklist dari notifikasi: " + e.message);
-  }
-}
-
-async function showBrowserNotification(data){
-  try{
-    if(!("Notification" in window)) return;
-    if(Notification.permission === "default") await Notification.requestPermission();
-    if(Notification.permission !== "granted") return;
-    const item = (data.items||[]).find(x=>x.actionable);
-    if(!item) return;
-    const title = "Checklist Furnace - Perlu Pengecekan";
-    const body = item.message;
-    if("serviceWorker" in navigator){
-      const reg = await navigator.serviceWorker.getRegistration("/Checklist-record/");
-      if(reg && reg.showNotification){
-        await reg.showNotification(title,{body,icon:"/Checklist-record/icons/icon-192.png",tag:item.id,data:{url:"/Checklist-record/"}});
-        return;
-      }
-    }
-    new Notification(title,{body});
-  }catch(e){ /* browser notification is optional */ }
 }
 
 /* ======================= ROUTER ======================= */
@@ -517,7 +367,6 @@ function boot(){
   if(!SESSION){ renderLogin(); return; }
   loadChecklistDefs(); // fire-and-forget - kicks off the fetch early so it's likely ready by the time a checklist is opened
   renderHome();
-  initNotificationPolling();
 }
 boot();
 
@@ -552,12 +401,11 @@ async function handleLogin(){
   if(!username || !password){ msg.innerHTML = `<div class="msg err">Username & password wajib diisi.</div>`; return; }
   try{
     const data = await api("login", {username, password, device: navigator.userAgent});
-    SESSION = data; // {token, username, fullName, role, jobTitle, shift}
+    SESSION = data; // {token, username, fullName, role, jobTitle}
     localStorage.setItem("cf_session", JSON.stringify(SESSION));
     loadChecklistDefs(); // fire-and-forget - same as boot()
     setUserBox();
     renderHome();
-    initNotificationPolling();
   }catch(e){
     msg.innerHTML = `<div class="msg err">${e.message}</div>`;
   }
@@ -634,8 +482,188 @@ function renderHome(){
         <div class="emoji">🗂️</div><h3>Record</h3>
         <p>Segera hadir</p>
       </div>
+      ${["supervisor","superintendent","engineer"].includes(SESSION.role) ? `
+      <div class="menu-tile" onclick="renderDashboard()">
+        <div class="emoji">📊</div><h3>Dashboard</h3>
+        <p>Rangkuman & rapor shift: belum isi, progress, perlu dicek</p>
+      </div>` : ""}
     </div>
   `));
+}
+
+/* ======================= DASHBOARD RANGKUMAN =======================
+ * Rangkuman semua checklist (Skimming/Tapping/HMC) untuk rentang tanggal:
+ * shift mana yang belum mengisi, perlu dicek ("salah isi": Group tidak
+ * sesuai jadwal rotasi, atau Final tapi item kosong/TTD kurang), atau
+ * masih progress (lengkap dengan keterangan berhenti di tahap mana) -
+ * plus rapor per Group dan per Shift. Data datang dari action
+ * "getDashboard" (Code.gs); rapor & filter dihitung di sini supaya
+ * mengubah filter tidak perlu memanggil server lagi. Record belum ada
+ * datanya, jadi ditampilkan sebagai "belum tersedia". */
+const DASH_STATE_LABEL = {belum:"Belum isi", progress:"Progress", salah:"Perlu dicek", selesai:"Selesai"};
+let DASH = {rows:[], checklists:[], filter:{chk:"", shift:"", state:"todo"}};
+
+function dashEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function renderDashboard(){
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  const endD = new Date();
+  const startD = new Date(); startD.setDate(startD.getDate() - 6);
+  const startVal = (DASH.start) || localDateStr(startD);
+  const endVal = (DASH.end) || localDateStr(endD);
+  app.appendChild(el(`
+    ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Dashboard Rangkuman"}])}
+    <h2>📊 Dashboard Rangkuman</h2>
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:1;min-width:140px;"><label style="font-size:12px;color:var(--muted);">Tanggal Mulai</label><input type="date" id="dash-start" value="${startVal}"></div>
+        <div style="flex:1;min-width:140px;"><label style="font-size:12px;color:var(--muted);">Tanggal Selesai</label><input type="date" id="dash-end" value="${endVal}"></div>
+        <div><button class="btn" onclick="loadDashboard()">Tampilkan</button></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px;">Maksimal 62 hari per tampilan. Group "seharusnya" dihitung dari jadwal rotasi (2 hari Pagi, 2 hari Siang, 2 hari Malam, 2 hari Off).</div>
+    </div>
+    <div id="dash-body"></div>
+  `));
+  loadDashboard();
+}
+
+async function loadDashboard(){
+  const start = document.getElementById("dash-start").value;
+  const end = document.getElementById("dash-end").value;
+  const body = document.getElementById("dash-body");
+  if(!start || !end){ body.innerHTML = `<div class="msg info">Isi tanggal mulai dan selesai.</div>`; return; }
+  DASH.start = start; DASH.end = end;
+  body.innerHTML = `<div class="msg info"><span class="spinner"></span> Memuat rangkuman...</div>`;
+  try{
+    const data = await api("getDashboard", {startDate:start, endDate:end});
+    DASH.rows = data.rows || [];
+    DASH.checklists = data.checklists || [];
+    renderDashboardBody();
+  }catch(e){
+    body.innerHTML = `<div class="msg" style="background:#fee2e2;color:#991b1b;">${dashEsc(e.message)}</div>`;
+  }
+}
+
+function dashCount(rows){
+  const c = {total:rows.length, selesai:0, progress:0, belum:0, salah:0};
+  rows.forEach(r=>{ c[r.state] = (c[r.state]||0) + 1; });
+  return c;
+}
+
+function dashRaporTable(title, groups){
+  // groups: [{label, rows}] - one table row per group, one column per checklist (+ total)
+  const head = DASH.checklists.map(c=>`<th>${dashEsc(c.title)}</th>`).join("");
+  const body = groups.map(g=>{
+    const cells = DASH.checklists.map(c=>{
+      const k = dashCount(g.rows.filter(r=>r.key===c.key));
+      if(!k.total) return `<td style="color:var(--muted);">-</td>`;
+      const pct = Math.round(k.selesai*100/k.total);
+      return `<td><b>${k.selesai}/${k.total}</b> selesai <span style="color:var(--muted);">(${pct}%)</span>
+        <div style="font-size:11px;color:var(--muted);">progress ${k.progress} · belum ${k.belum} · cek ${k.salah}</div></td>`;
+    }).join("");
+    const t = dashCount(g.rows);
+    const tp = t.total ? Math.round(t.selesai*100/t.total) : 0;
+    return `<tr><td><b>${dashEsc(g.label)}</b></td>${cells}
+      <td><b>${t.selesai}/${t.total}</b> <span style="color:var(--muted);">(${tp}%)</span></td>
+      <td style="color:var(--muted);">belum tersedia</td></tr>`;
+  }).join("");
+  return `<h3 style="margin:22px 0 8px;font-size:15px;">${title}</h3>
+    <div style="overflow-x:auto;"><table class="chk-table"><thead><tr><th>&nbsp;</th>${head}<th>Total Checklist</th><th>Record</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function renderDashboardBody(){
+  const body = document.getElementById("dash-body");
+  const rows = DASH.rows;
+  const all = dashCount(rows);
+  const card = (state, label, cls)=>`
+    <div class="dash-card ${cls}" onclick="setDashFilter('state','${state}')">
+      <div class="num">${state==="all" ? all.total : all[state]}</div><div class="lbl">${label}</div>
+    </div>`;
+  // Rapor per Group (berdasarkan jadwal) & per Shift
+  const groupList = ["1","2","3","4"].map(g=>({label:"Group "+g, rows: rows.filter(r=>String(r.schedGroup)===g)}));
+  const shiftList = ["Pagi","Siang","Malam"].map(s=>({label:"Shift "+s, rows: rows.filter(r=>r.shift===s)}));
+
+  body.innerHTML = `
+    <div class="dash-cards">
+      ${card("all","Total (tanggal×shift×checklist)","")}
+      ${card("selesai","Selesai","c-selesai")}
+      ${card("progress","Progress","c-progress")}
+      ${card("belum","Belum isi","c-belum")}
+      ${card("salah","Perlu dicek","c-salah")}
+    </div>
+    ${dashRaporTable("Rapor per Shift", shiftList)}
+    ${dashRaporTable("Rapor per Group (sesuai jadwal rotasi)", groupList)}
+    <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">Kolom Record: fitur Record belum tersedia, jadi belum ikut dihitung.</div>
+    <h3 style="margin:24px 0 8px;font-size:15px;">Detail per Shift</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+      <select id="dash-f-chk" onchange="setDashFilter('chk',this.value)" style="flex:1;min-width:130px;">
+        <option value="">Semua checklist</option>
+        ${DASH.checklists.map(c=>`<option value="${c.key}">${dashEsc(c.title)}</option>`).join("")}
+      </select>
+      <select id="dash-f-shift" onchange="setDashFilter('shift',this.value)" style="flex:1;min-width:130px;">
+        <option value="">Semua shift</option><option>Pagi</option><option>Siang</option><option>Malam</option>
+      </select>
+      <select id="dash-f-state" onchange="setDashFilter('state',this.value)" style="flex:1;min-width:150px;">
+        <option value="todo">Perlu tindakan (belum/progress/cek)</option>
+        <option value="all">Semua</option>
+        <option value="belum">Belum isi</option>
+        <option value="progress">Progress</option>
+        <option value="salah">Perlu dicek</option>
+        <option value="selesai">Selesai</option>
+      </select>
+    </div>
+    <div id="dash-detail"></div>
+  `;
+  document.getElementById("dash-f-chk").value = DASH.filter.chk;
+  document.getElementById("dash-f-shift").value = DASH.filter.shift;
+  document.getElementById("dash-f-state").value = DASH.filter.state;
+  renderDashboardDetail();
+}
+
+function setDashFilter(which, val){
+  DASH.filter[which] = val;
+  const sel = document.getElementById("dash-f-"+which);
+  if(sel) sel.value = val;
+  renderDashboardDetail();
+  const d = document.getElementById("dash-detail");
+  if(d && which==="state") d.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function renderDashboardDetail(){
+  const f = DASH.filter;
+  let rows = DASH.rows.filter(r=>{
+    if(f.chk && r.key !== f.chk) return false;
+    if(f.shift && r.shift !== f.shift) return false;
+    if(f.state === "todo") return r.state !== "selesai";
+    if(f.state !== "all") return r.state === f.state;
+    return true;
+  });
+  const box = document.getElementById("dash-detail");
+  if(!rows.length){
+    box.innerHTML = `<div class="msg info">Tidak ada data untuk filter ini 🎉</div>`;
+    return;
+  }
+  const trs = rows.map(r=>{
+    const grp = r.recGroup ? "Group "+r.recGroup : "-";
+    const grpWarn = (r.recGroup && String(r.recGroup) !== String(r.schedGroup));
+    const flags = r.flags.length ? `<div style="color:var(--warn);font-size:12px;margin-top:3px;">⚠️ ${r.flags.map(dashEsc).join(" · ")}</div>` : "";
+    const sigs = r.status ? `<span style="font-size:11px;color:var(--muted);">TTD: ${r.sig.operator?"✔":"✘"} Opr · ${r.sig.supervisor?"✔":"✘"} Spv · ${r.sig.superintendent?"✔":"✘"} Spt</span>` : "";
+    return `<tr class="dash-row ${r.state}">
+      <td style="white-space:nowrap;">${dashEsc(r.tanggal)}</td>
+      <td>${dashEsc(r.shift)}</td>
+      <td>${dashEsc(r.title)}</td>
+      <td>Group ${dashEsc(r.schedGroup)}</td>
+      <td${grpWarn?' style="color:var(--warn);font-weight:700;"':''}>${dashEsc(grp)}</td>
+      <td><span class="pill ${r.state}">${DASH_STATE_LABEL[r.state]}</span>${r.status?`<div style="font-size:11px;color:var(--muted);margin-top:3px;">${dashEsc(r.status)}</div>`:""}</td>
+      <td>${dashEsc(r.note)}${flags}<div>${sigs}</div></td>
+    </tr>`;
+  }).join("");
+  box.innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${rows.length} baris ditampilkan</div>
+    <div style="overflow-x:auto;"><table class="chk-table">
+      <thead><tr><th>Tanggal</th><th>Shift</th><th>Checklist</th><th>Group Jadwal</th><th>Group Tercatat</th><th>Status</th><th>Keterangan Progres</th></tr></thead>
+      <tbody>${trs}</tbody></table></div>`;
 }
 
 const CHECKLIST_MENU = [
@@ -999,7 +1027,7 @@ function renderChecklistForm(){
   const stageInfo = STAGE_NEXT[statusEff];
   const canAdvance = stageInfo && (SESSION.role === stageInfo.byRole || SESSION.role === "engineer");
   const canRevert = statusEff !== "Draft" && SESSION.role === "engineer";
-  const canExportPdf = ["supervisor","superintendent"].includes(SESSION.role);
+  const canExportPdf = ["supervisor","superintendent","engineer"].includes(SESSION.role);
   const canExportDay = SESSION.role === "engineer";
   const viewOnlyNote = (!canSaveProgress && !isFinal)
     ? "Mode lihat saja - menunggu " + (STAGE_ACTIVE_ROLE[statusEff]||[]).map(r=>ROLE_LABEL[r]).join("/") + "."
