@@ -112,6 +112,7 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 .chart-bar{flex:1;display:flex;height:28px;border-radius:7px;overflow:hidden;background:var(--input-bg);border:1px solid var(--border);}
 .chart-bar.empty{align-items:center;padding-left:10px;font-size:12px;color:var(--muted);}
 .chart-bar .seg{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;min-width:0;}
+.chart-sub{font-size:11px;color:var(--muted);margin:-4px 0 6px 0;padding-left:78px;}
 .chart-pct{width:44px;text-align:right;font-weight:700;font-size:13px;flex-shrink:0;}
 .seg.selesai{background:var(--ok);} .seg.progress{background:var(--accent);} .seg.salah{background:var(--warn);} .seg.belum{background:var(--bad);}
 .dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0 4px;}
@@ -762,23 +763,43 @@ function dashRaporTable(title, groups){
 }
 
 // Grafik batang bertumpuk (HTML/CSS murni, tanpa library): satu batang per
-// group, panjang segmen = persentase tiap status dari total group itu.
-function dashGroupChart(groups){
+// item, panjang segmen = persentase tiap status dari total item itu.
+// items: [{label, rows, emptyText?}]
+function dashStackedChart(title, items, labelWidth){
   const segs = [["selesai","Selesai"],["progress","Progress"],["salah","Perlu dicek"],["belum","Belum isi"]];
   const legend = segs.map(([k,l])=>`<span class="chart-leg"><i class="seg ${k}"></i>${l}</span>`).join("");
-  const bars = groups.map(g=>{
+  const lw = labelWidth ? ` style="width:${labelWidth}px;"` : "";
+  const bars = items.map(g=>{
     const k = dashCount(g.rows);
-    if(!k.total) return `<div class="chart-row"><div class="chart-label">${dashEsc(g.label)}</div><div class="chart-bar empty">${(DASH.rapor||"all")==="record" ? "belum tersedia" : "tidak ada data"}</div><div class="chart-pct">-</div></div>`;
+    if(!k.total) return `<div class="chart-row"><div class="chart-label"${lw}>${dashEsc(g.label)}</div><div class="chart-bar empty">${dashEsc(g.emptyText || "tidak ada data")}</div><div class="chart-pct">-</div></div>`;
     const parts = segs.map(([key,label])=>{
       const n = k[key]; if(!n) return "";
       const w = n*100/k.total;
       return `<div class="seg ${key}" style="width:${w}%;" title="${label}: ${n} (${Math.round(w)}%)">${w>=9 ? n : ""}</div>`;
     }).join("");
-    return `<div class="chart-row"><div class="chart-label">${dashEsc(g.label)}</div><div class="chart-bar">${parts}</div><div class="chart-pct">${Math.round(k.selesai*100/k.total)}%</div></div>`;
+    return `<div class="chart-row"><div class="chart-label"${lw}>${dashEsc(g.label)}</div><div class="chart-bar">${parts}</div><div class="chart-pct">${Math.round(k.selesai*100/k.total)}%</div></div>
+      <div class="chart-sub"${lw ? ` style="padding-left:${labelWidth+10}px;"` : ""}>selesai ${k.selesai} · progress ${k.progress} · cek ${k.salah} · belum isi ${k.belum} (dari ${k.total})</div>`;
   }).join("");
-  return `<h3 style="margin:22px 0 8px;font-size:15px;">Grafik Rapor per Group - ${dashEsc(dashRaporLabel())}</h3>
+  return `<h3 style="margin:22px 0 8px;font-size:15px;">${title}</h3>
     <div class="chart-wrap"><div class="chart-legend">${legend}</div>${bars}
     <div style="font-size:11px;color:var(--muted);margin-top:8px;">Persen di kanan = % selesai. Angka di dalam batang = jumlah. Sentuh/arahkan ke segmen untuk rincian.</div></div>`;
+}
+
+function dashGroupChart(groups){
+  const emptyText = (DASH.rapor||"all")==="record" ? "belum tersedia" : "tidak ada data";
+  return dashStackedChart("Grafik Rapor per Group - " + dashEsc(dashRaporLabel()),
+    groups.map(g=>Object.assign({emptyText}, g)));
+}
+
+// Grafik per JENIS laporan (Skimming / Tapping / HMC / ... / Record):
+// membandingkan jenis mana yang sering belum selesai, sudah selesai, atau
+// belum diisi. Selalu menampilkan SEMUA jenis (tidak ikut pilihan
+// dropdown Rapor, karena tujuannya membandingkan antar jenis). Jenis baru
+// otomatis ikut karena daftarnya dari data server.
+function dashTypeChart(){
+  const items = DASH.checklists.map(c=>({label:c.title, rows: DASH.rows.filter(r=>r.key===c.key)}));
+  items.push({label:"Record", rows:[], emptyText:"belum tersedia"});
+  return dashStackedChart("Grafik per Jenis Laporan (Checklist &amp; Record)", items, 150);
 }
 
 function renderDashRapor(){
@@ -817,6 +838,7 @@ function renderDashboardBody(){
       ${card("belum","Belum isi","c-belum")}
       ${card("salah","Perlu dicek","c-salah")}
     </div>
+    ${dashTypeChart()}
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0 0;">
       <h3 style="margin:0;font-size:16px;">Rapor</h3>
       <select id="dash-rapor-sel" onchange="setDashRapor(this.value)" style="flex:1;min-width:200px;max-width:340px;">
