@@ -104,6 +104,16 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 .item-col-wrap{display:flex;align-items:flex-start;gap:6px;}
 .catatan-cell{display:flex;align-items:center;gap:6px;}
 .catatan-cell .catatan-inp{flex:1;min-width:0;}
+.chart-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px;}
+.chart-leg{display:inline-flex;align-items:center;gap:5px;} .chart-leg .seg{display:inline-block;width:12px;height:12px;border-radius:3px;}
+.chart-row{display:flex;align-items:center;gap:10px;margin:8px 0;}
+.chart-label{width:68px;font-weight:700;font-size:13px;flex-shrink:0;}
+.chart-bar{flex:1;display:flex;height:28px;border-radius:7px;overflow:hidden;background:var(--input-bg);border:1px solid var(--border);}
+.chart-bar.empty{align-items:center;padding-left:10px;font-size:12px;color:var(--muted);}
+.chart-bar .seg{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;min-width:0;}
+.chart-pct{width:44px;text-align:right;font-weight:700;font-size:13px;flex-shrink:0;}
+.seg.selesai{background:var(--ok);} .seg.progress{background:var(--accent);} .seg.salah{background:var(--warn);} .seg.belum{background:var(--bad);}
 .dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0 4px;}
 .dash-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;box-shadow:var(--shadow);}
 .dash-card:hover{border-color:var(--accent);}
@@ -665,7 +675,7 @@ function renderHome(){
  * mengubah filter tidak perlu memanggil server lagi. Record belum ada
  * datanya, jadi ditampilkan sebagai "belum tersedia". */
 const DASH_STATE_LABEL = {belum:"Belum isi", progress:"Progress", salah:"Perlu dicek", selesai:"Selesai"};
-let DASH = {rows:[], checklists:[], filter:{chk:"", shift:"", grp:"", state:"todo"}};
+let DASH = {rows:[], checklists:[], rapor:"all", filter:{chk:"", shift:"", grp:"", state:"todo"}};
 
 function dashEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
@@ -715,25 +725,79 @@ function dashCount(rows){
   return c;
 }
 
+// Jenis laporan yang sedang dipilih untuk panel Rapor: "all" = semua
+// checklist digabung, "<key>" = satu checklist saja (skimming/tapping/hmc/
+// dst - daftar dibangun dari data server, jadi jenis baru di masa depan
+// otomatis muncul di pilihan), "record" = Record (belum ada datanya).
+function dashRaporRows(rows){
+  const j = DASH.rapor || "all";
+  if(j === "record") return [];
+  if(j === "all") return rows;
+  return rows.filter(r=>r.key === j);
+}
+function dashRaporLabel(){
+  const j = DASH.rapor || "all";
+  if(j === "all") return "Semua checklist";
+  if(j === "record") return "Record";
+  const c = DASH.checklists.find(c=>c.key === j);
+  return c ? c.title : j;
+}
+
 function dashRaporTable(title, groups){
-  // groups: [{label, rows}] - one table row per group, one column per checklist (+ total)
-  const head = DASH.checklists.map(c=>`<th>${dashEsc(c.title)}</th>`).join("");
+  // groups: [{label, rows}] - satu baris per group/shift, kolom per status
   const body = groups.map(g=>{
-    const cells = DASH.checklists.map(c=>{
-      const k = dashCount(g.rows.filter(r=>r.key===c.key));
-      if(!k.total) return `<td style="color:var(--muted);">-</td>`;
-      const pct = Math.round(k.selesai*100/k.total);
-      return `<td><b>${k.selesai}/${k.total}</b> selesai <span style="color:var(--muted);">(${pct}%)</span>
-        <div style="font-size:11px;color:var(--muted);">progress ${k.progress} · belum ${k.belum} · cek ${k.salah}</div></td>`;
-    }).join("");
-    const t = dashCount(g.rows);
-    const tp = t.total ? Math.round(t.selesai*100/t.total) : 0;
-    return `<tr><td><b>${dashEsc(g.label)}</b></td>${cells}
-      <td><b>${t.selesai}/${t.total}</b> <span style="color:var(--muted);">(${tp}%)</span></td>
-      <td style="color:var(--muted);">belum tersedia</td></tr>`;
+    const k = dashCount(g.rows);
+    if(!k.total) return `<tr><td><b>${dashEsc(g.label)}</b></td><td colspan="6" style="color:var(--muted);">${(DASH.rapor||"all")==="record" ? "belum tersedia" : "tidak ada data"}</td></tr>`;
+    const pct = Math.round(k.selesai*100/k.total);
+    return `<tr><td><b>${dashEsc(g.label)}</b></td>
+      <td style="color:var(--ok);font-weight:700;">${k.selesai}</td>
+      <td style="color:var(--accent);font-weight:700;">${k.progress}</td>
+      <td style="color:var(--bad);font-weight:700;">${k.belum}</td>
+      <td style="color:var(--warn);font-weight:700;">${k.salah}</td>
+      <td>${k.total}</td>
+      <td><b>${pct}%</b></td></tr>`;
   }).join("");
-  return `<h3 style="margin:22px 0 8px;font-size:15px;">${title}</h3>
-    <div style="overflow-x:auto;"><table class="chk-table"><thead><tr><th>&nbsp;</th>${head}<th>Total Checklist</th><th>Record</th></tr></thead><tbody>${body}</tbody></table></div>`;
+  return `<h3 style="margin:18px 0 8px;font-size:15px;">${title}</h3>
+    <div style="overflow-x:auto;"><table class="chk-table"><thead><tr><th>&nbsp;</th><th>Selesai</th><th>Progress</th><th>Belum isi</th><th>Perlu dicek</th><th>Total</th><th>% Selesai</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+// Grafik batang bertumpuk (HTML/CSS murni, tanpa library): satu batang per
+// group, panjang segmen = persentase tiap status dari total group itu.
+function dashGroupChart(groups){
+  const segs = [["selesai","Selesai"],["progress","Progress"],["salah","Perlu dicek"],["belum","Belum isi"]];
+  const legend = segs.map(([k,l])=>`<span class="chart-leg"><i class="seg ${k}"></i>${l}</span>`).join("");
+  const bars = groups.map(g=>{
+    const k = dashCount(g.rows);
+    if(!k.total) return `<div class="chart-row"><div class="chart-label">${dashEsc(g.label)}</div><div class="chart-bar empty">${(DASH.rapor||"all")==="record" ? "belum tersedia" : "tidak ada data"}</div><div class="chart-pct">-</div></div>`;
+    const parts = segs.map(([key,label])=>{
+      const n = k[key]; if(!n) return "";
+      const w = n*100/k.total;
+      return `<div class="seg ${key}" style="width:${w}%;" title="${label}: ${n} (${Math.round(w)}%)">${w>=9 ? n : ""}</div>`;
+    }).join("");
+    return `<div class="chart-row"><div class="chart-label">${dashEsc(g.label)}</div><div class="chart-bar">${parts}</div><div class="chart-pct">${Math.round(k.selesai*100/k.total)}%</div></div>`;
+  }).join("");
+  return `<h3 style="margin:22px 0 8px;font-size:15px;">Grafik Rapor per Group - ${dashEsc(dashRaporLabel())}</h3>
+    <div class="chart-wrap"><div class="chart-legend">${legend}</div>${bars}
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;">Persen di kanan = % selesai. Angka di dalam batang = jumlah. Sentuh/arahkan ke segmen untuk rincian.</div></div>`;
+}
+
+function renderDashRapor(){
+  const box = document.getElementById("dash-rapor");
+  if(!box) return;
+  const rows = dashRaporRows(DASH.rows);
+  const groupList = ["1","2","3","4"].map(g=>({label:"Group "+g, rows: rows.filter(r=>String(r.schedGroup)===g)}));
+  const shiftList = ["Pagi","Siang","Malam"].map(s=>({label:"Shift "+s, rows: rows.filter(r=>r.shift===s)}));
+  const note = (DASH.rapor||"all")==="record"
+    ? `<div class="msg info" style="margin-top:10px;">Fitur Record belum tersedia, jadi belum ada data untuk dirapor.</div>` : "";
+  box.innerHTML = `${note}
+    ${dashRaporTable("Rapor per Shift - " + dashEsc(dashRaporLabel()), shiftList)}
+    ${dashRaporTable("Rapor per Group (sesuai jadwal rotasi) - " + dashEsc(dashRaporLabel()), groupList)}
+    ${dashGroupChart(groupList)}`;
+}
+
+function setDashRapor(val){
+  DASH.rapor = val;
+  renderDashRapor();
 }
 
 function renderDashboardBody(){
@@ -744,9 +808,6 @@ function renderDashboardBody(){
     <div class="dash-card ${cls}" onclick="setDashFilter('state','${state}')">
       <div class="num">${state==="all" ? all.total : all[state]}</div><div class="lbl">${label}</div>
     </div>`;
-  // Rapor per Group (berdasarkan jadwal) & per Shift
-  const groupList = ["1","2","3","4"].map(g=>({label:"Group "+g, rows: rows.filter(r=>String(r.schedGroup)===g)}));
-  const shiftList = ["Pagi","Siang","Malam"].map(s=>({label:"Shift "+s, rows: rows.filter(r=>r.shift===s)}));
 
   body.innerHTML = `
     <div class="dash-cards">
@@ -756,9 +817,19 @@ function renderDashboardBody(){
       ${card("belum","Belum isi","c-belum")}
       ${card("salah","Perlu dicek","c-salah")}
     </div>
-    ${dashRaporTable("Rapor per Shift", shiftList)}
-    ${dashRaporTable("Rapor per Group (sesuai jadwal rotasi)", groupList)}
-    <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">Kolom Record: fitur Record belum tersedia, jadi belum ikut dihitung.</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:22px 0 0;">
+      <h3 style="margin:0;font-size:16px;">Rapor</h3>
+      <select id="dash-rapor-sel" onchange="setDashRapor(this.value)" style="flex:1;min-width:200px;max-width:340px;">
+        <optgroup label="Checklist">
+          <option value="all">Semua checklist</option>
+          ${DASH.checklists.map(c=>`<option value="${c.key}">${dashEsc(c.title)}</option>`).join("")}
+        </optgroup>
+        <optgroup label="Record">
+          <option value="record">Record (belum tersedia)</option>
+        </optgroup>
+      </select>
+    </div>
+    <div id="dash-rapor"></div>
     <h3 style="margin:24px 0 8px;font-size:15px;">Detail per Shift</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
       <select id="dash-f-chk" onchange="setDashFilter('chk',this.value)" style="flex:1;min-width:130px;">
@@ -784,6 +855,8 @@ function renderDashboardBody(){
     </div>
     <div id="dash-detail"></div>
   `;
+  document.getElementById("dash-rapor-sel").value = DASH.rapor || "all";
+  renderDashRapor();
   document.getElementById("dash-f-chk").value = DASH.filter.chk;
   document.getElementById("dash-f-shift").value = DASH.filter.shift;
   document.getElementById("dash-f-grp").value = DASH.filter.grp;
