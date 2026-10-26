@@ -1096,12 +1096,15 @@ async function openChecklistDirect(){
   CURRENT.tanggal = tanggal; CURRENT.shift = shift; CURRENT.group = null;
   statusBox.innerHTML = `<div class="msg info"><span class="spinner"></span> Memuat data...</div>`;
   try{
-    const rec = await api("getChecklist", {
-      checklistName: CURRENT.checklistKey, tanggal, shift, autoProvision: true
-    });
+    // Tiga hal yang tidak saling bergantung dijalankan BERSAMAAN (dulu
+    // berurutan, sehingga waktu tunggunya dijumlahkan).
+    const [rec] = await Promise.all([
+      api("getChecklist", {checklistName: CURRENT.checklistKey, tanggal, shift, autoProvision: true}),
+      loadPrevShiftHandover(),
+      loadChecklistDefs()
+    ]);
     CURRENT.group = rec.group || null;
     CURRENT.record = rec; // {found, status, dataJson, signatures, group, ...} or {found:false, group}
-    await loadPrevShiftHandover();
     renderChecklistForm();
   }catch(e){
     statusBox.innerHTML = `<div class="msg err">${e.message}</div>`;
@@ -1218,6 +1221,15 @@ function renderChecklistForm(){
   const itemsReadOnly = itemsReadOnlyFor(statusEff);
   const isFinal = statusEff === "Final";
 
+  // Isian tambahan per checklist (mis. "No Ladle"), disimpan di dataJson._meta
+  let metaSaved = {};
+  try{ metaSaved = (rec && rec.found && rec.dataJson) ? (JSON.parse(rec.dataJson)._meta || {}) : {}; }catch(e){}
+  const escAttr = v => String(v == null ? "" : v).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+  const metaFields = (def.fields || []).map(f=>`
+      <div class="fld"><label>${f.label}</label>
+        <input type="text" class="meta-inp" data-meta="${f.id}" value="${escAttr(metaSaved[f.id])}" placeholder="${escAttr(f.placeholder||"")}" oninput="markDirty()" ${itemsReadOnly?"disabled":""} style="max-width:150px;">
+      </div>`).join("");
+
   const header = el(`
     ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist", fn:"renderChecklistPicker()"}, {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
     <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">v.${def.version}</small></h2>
@@ -1231,6 +1243,7 @@ function renderChecklistForm(){
           ${GROUPS.map(g=>`<option value="${g}" ${CURRENT.group===g?"selected":""}>Group ${g}</option>`).join("")}
         </select>
       </div>
+      ${metaFields}
       <div class="fld"><label>Status</label><div><span class="status-badge ${statusBadgeClass(statusEff)}">${rec && rec.found ? rec.status : 'BELUM ADA DATA'}</span></div></div>
       <div class="fld" style="flex:0;"><button class="btn secondary" onclick="openChecklistSetup('${CURRENT.checklistKey}')">Ganti Tanggal/Shift</button></div>
     </div>
@@ -1456,7 +1469,11 @@ function buildPrintItemsTable(def, savedItems){
     rows += `<tr><td class="item-col">${it.pos?`<div style="font-size:11px;color:var(--muted)">${it.pos}</div>`:""}${it.item}</td><td>${kodeBadges}</td><td class="std-col">${it.std||""}</td><td>${s.h||"-"}</td><td>${catatan}</td></tr>`;
   });
   const handover = (savedItems._handover && savedItems._handover.text) ? `<div class="msg info" style="margin-top:8px;">📝 Catatan untuk shift berikutnya: ${savedItems._handover.text.replace(/</g,"&lt;")}</div>` : "";
-  return `<div style="overflow-x:auto;"><table class="chk-table"><thead><tr>
+  const metaHtml = (def.fields||[]).map(f=>{
+    const v = savedItems._meta && savedItems._meta[f.id];
+    return v ? `<p style="margin:4px 0;"><b>${f.label}:</b> ${String(v).replace(/</g,"&lt;")}</p>` : "";
+  }).join("");
+  return metaHtml + `<div style="overflow-x:auto;"><table class="chk-table"><thead><tr>
       <th>Item Pemeriksaan</th><th>Metode</th><th>Standar</th><th>Hasil</th><th>Catatan</th>
     </tr></thead>
     <tbody>${rows}</tbody></table></div>${handover}`;
@@ -1529,6 +1546,12 @@ function collectFormData(){
   if(handoverEl && handoverEl.value.trim()){
     data._handover = {text: handoverEl.value};
   }
+  const meta = {};
+  document.querySelectorAll(".meta-inp").forEach(inp=>{
+    const v = inp.value.trim();
+    if(v) meta[inp.getAttribute("data-meta")] = v;
+  });
+  if(Object.keys(meta).length) data._meta = meta;
   const signatures = {};
   ["operator","supervisor","superintendent"].forEach(role=>{
     const pad = CURRENT.sigPads[role];
