@@ -131,6 +131,7 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 [data-theme="dark"] .pill.selesai{background:#12301f;color:#4ade80;} [data-theme="dark"] .pill.progress{background:#1e2f4d;color:#60a5fa;}
 [data-theme="dark"] .pill.belum{background:#3b1717;color:#f87171;} [data-theme="dark"] .pill.salah{background:#3a2c0f;color:#fbbf24;}
 tr.dash-row{cursor:pointer;} tr.dash-row:hover td{background:rgba(37,99,235,.07);} tr.dash-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+tr.dash-row.dash-last td{background:rgba(37,99,235,.10);}
 tr.dash-row.belum td:first-child{box-shadow:inset 3px 0 0 var(--bad);} tr.dash-row.salah td:first-child{box-shadow:inset 3px 0 0 var(--warn);}
 tr.dash-row.progress td:first-child{box-shadow:inset 3px 0 0 var(--accent);} tr.dash-row.selesai td:first-child{box-shadow:inset 3px 0 0 var(--ok);}
 .info-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:pointer;}
@@ -670,6 +671,7 @@ async function handleRegister(){
 
 /* ======================= HOME MENU ======================= */
 function renderHome(){
+  CURRENT.fromDashboard = false;
   const app = document.getElementById("app");
   app.innerHTML = "";
   app.appendChild(el(`
@@ -706,9 +708,10 @@ let DASH = {rows:[], checklists:[], rapor:"all", typeHide:{}, filter:{chk:"", sh
 
 function dashEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-function renderDashboard(){
+function renderDashboard(fromCache){
   const app = document.getElementById("app");
   app.innerHTML = "";
+  if(fromCache !== true) CURRENT.fromDashboard = false; // dibuka dari menu = mulai baru
   const endD = new Date(Date.now() - 7*3600*1000); // tanggal operasional (sebelum 07:00 = kemarin)
   const startD = new Date(endD); startD.setDate(startD.getDate() - 6);
   const startVal = (DASH.start) || localDateStr(startD);
@@ -726,7 +729,46 @@ function renderDashboard(){
     </div>
     <div id="dash-body"></div>
   `));
+  // Kembali dari checklist: tampilkan data yang SUDAH dimuat seketika (tanpa
+  // memuat ulang), pulihkan filter & posisi scroll, lalu segarkan diam-diam
+  // hanya tanggal yang barusan dibuka.
+  if(fromCache === true && DASH.rows && DASH.rows.length){
+    renderDashboardBody();
+    window.scrollTo(0, DASH.scrollY || 0);
+    if(DASH.opened) refreshDashboardDay(DASH.opened.tanggal);
+    return;
+  }
   loadDashboard();
+}
+
+const DASH_SHIFT_ORDER = {Pagi:0, Siang:1, Malam:2};
+async function refreshDashboardDay(tanggal){
+  try{
+    const data = await api("getDashboard", {startDate: tanggal, endDate: tanggal});
+    if(!document.getElementById("dash-body")) return;          // sudah pindah halaman
+    const fresh = data.rows || [];
+    const before = JSON.stringify(DASH.rows.filter(r=>r.tanggal===tanggal));
+    if(before === JSON.stringify(fresh)) return;                // tidak ada perubahan -> jangan geser tampilan
+    const order = {}; DASH.checklists.forEach((c,i)=>{ order[c.key] = i; });
+    DASH.rows = DASH.rows.filter(r=>r.tanggal!==tanggal).concat(fresh).sort((a,b)=>
+      a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 :
+      (DASH_SHIFT_ORDER[a.shift]||0) - (DASH_SHIFT_ORDER[b.shift]||0) ||
+      (order[a.key]||0) - (order[b.key]||0));
+    const y = window.scrollY;
+    renderDashboardBody();
+    window.scrollTo(0, y);
+  }catch(e){ /* diam: tampilan lama tetap dipakai */ }
+}
+
+// Tombol "Kembali ke Dashboard" di halaman checklist.
+async function backToDashboard(){
+  if(dirty){
+    clearTimeout(saveTimer);
+    await saveProgress(false);                                  // simpan dulu perubahan terakhir
+    if(dirty && !confirm("Perubahan terakhir belum berhasil tersimpan. Tetap kembali ke dashboard?")) return;
+    dirty = false;
+  }
+  renderDashboard(true);
 }
 
 async function loadDashboard(){
@@ -975,7 +1017,7 @@ function renderDashboardDetail(){
     const grpWarn = (r.recGroup && String(r.recGroup) !== String(r.schedGroup));
     const flags = r.flags.length ? `<div style="color:var(--warn);font-size:12px;margin-top:3px;">⚠️ ${r.flags.map(dashEsc).join(" · ")}</div>` : "";
     const sigs = r.status ? `<span style="font-size:11px;color:var(--muted);">TTD: ${r.sig.operator?"✔":"✘"} Opr · ${r.sig.supervisor?"✔":"✘"} Spv · ${r.sig.superintendent?"✔":"✘"} Spt</span>` : "";
-    return `<tr class="dash-row ${r.state}" tabindex="0" role="button" title="Klik untuk membuka checklist tanggal ini" onclick="openDashboardRow(${i})" onkeydown="if(event.key==='Enter')openDashboardRow(${i})">
+    return `<tr class="dash-row ${r.state}${(DASH.opened && DASH.opened.key===r.key && DASH.opened.tanggal===r.tanggal && DASH.opened.shift===r.shift) ? ' dash-last' : ''}" tabindex="0" role="button" title="Klik untuk membuka checklist tanggal ini" onclick="openDashboardRow(${i})" onkeydown="if(event.key==='Enter')openDashboardRow(${i})">
       <td style="white-space:nowrap;">${dashEsc(r.tanggal)}</td>
       <td>${dashEsc(r.shift)}</td>
       <td>${dashEsc(r.title)}</td>
@@ -1000,8 +1042,11 @@ function renderDashboardDetail(){
 async function openDashboardRow(i){
   const r = DASH.view && DASH.view[i];
   if(!r) return;
+  DASH.scrollY = window.scrollY;
+  DASH.opened = {key: r.key, tanggal: r.tanggal, shift: r.shift};
   try{
     await openChecklistSetup(r.key);
+    CURRENT.fromDashboard = true;
     const dateEl = document.getElementById("su-tanggal");
     const shiftEl = document.getElementById("su-shift");
     if(dateEl) dateEl.value = r.tanggal;
@@ -1033,6 +1078,7 @@ function checklistMenu(){
 }
 
 async function renderChecklistPicker(){
+  CURRENT.fromDashboard = false;
   const app = document.getElementById("app");
   app.innerHTML = "";
   await loadChecklistDefs();
@@ -1231,7 +1277,8 @@ function renderChecklistForm(){
       </div>`).join("");
 
   const header = el(`
-    ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist", fn:"renderChecklistPicker()"}, {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
+    ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, (CURRENT.fromDashboard ? {label:"📊 Dashboard", fn:"backToDashboard()"} : {label:"Checklist", fn:"renderChecklistPicker()"}), {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
+    ${CURRENT.fromDashboard ? `<div class="no-print" style="margin:4px 0 10px;"><button class="btn secondary" onclick="backToDashboard()">← Kembali ke Dashboard</button></div>` : ""}
     <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">v.${def.version}</small></h2>
     <div class="formbar">
       <div class="fld"><label>Tanggal</label><div><b>${CURRENT.tanggal}</b></div></div>
@@ -1409,6 +1456,7 @@ function renderChecklistForm(){
     : "";
   const savebar = el(`
     <div class="savebar no-print">
+      ${CURRENT.fromDashboard ? `<button class="btn secondary" onclick="backToDashboard()">← Dashboard</button>` : ""}
       <div class="autosave-note" id="autosaveNote">${viewOnlyNote}</div>
       ${canExportPdf ? `<button class="btn secondary" onclick="window.print()">🖨️ Export PDF</button>` : ""}
       ${canExportDay ? `<button class="btn secondary" onclick="exportDayPdf()">🖨️ Export PDF (1 Hari - Semua Shift)</button>` : ""}
