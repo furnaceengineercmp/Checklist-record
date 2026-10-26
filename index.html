@@ -130,6 +130,7 @@ canvas.sig-pad{width:100%;height:110px;border:1px dashed var(--border);border-ra
 .pill.belum{background:#fee2e2;color:#991b1b;} .pill.salah{background:#fef3c7;color:#92400e;}
 [data-theme="dark"] .pill.selesai{background:#12301f;color:#4ade80;} [data-theme="dark"] .pill.progress{background:#1e2f4d;color:#60a5fa;}
 [data-theme="dark"] .pill.belum{background:#3b1717;color:#f87171;} [data-theme="dark"] .pill.salah{background:#3a2c0f;color:#fbbf24;}
+tr.dash-row{cursor:pointer;} tr.dash-row:hover td{background:rgba(37,99,235,.07);} tr.dash-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
 tr.dash-row.belum td:first-child{box-shadow:inset 3px 0 0 var(--bad);} tr.dash-row.salah td:first-child{box-shadow:inset 3px 0 0 var(--warn);}
 tr.dash-row.progress td:first-child{box-shadow:inset 3px 0 0 var(--accent);} tr.dash-row.selesai td:first-child{box-shadow:inset 3px 0 0 var(--ok);}
 .info-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:pointer;}
@@ -204,7 +205,7 @@ const SHIFTS = [
   {id:"Malam", label:"Malam (23:00 - 07:00)"}
 ];
 const GROUPS = ["1","2","3","4"];
-const KODE_KETERANGAN = {V:"Visual", S:"Suara", T:"Sentuh", B:"Bau"};
+const KODE_KETERANGAN = {V:"Visual", S:"Suara", T:"Sentuh", B:"Bau", A:"Alat"};
 const ROLE_LABEL = {operator:"Operator", supervisor:"Supervisor", superintendent:"Superintendent", engineer:"Engineer"};
 
 /* ======================= STATE ======================= */
@@ -968,12 +969,13 @@ function renderDashboardDetail(){
     box.innerHTML = `<div class="msg info">Tidak ada data untuk filter ini 🎉</div>`;
     return;
   }
-  const trs = rows.map(r=>{
+  DASH.view = rows; // baris yang sedang tampil (dipakai klik -> buka checklist)
+  const trs = rows.map((r,i)=>{
     const grp = r.recGroup ? "Group "+r.recGroup : "-";
     const grpWarn = (r.recGroup && String(r.recGroup) !== String(r.schedGroup));
     const flags = r.flags.length ? `<div style="color:var(--warn);font-size:12px;margin-top:3px;">⚠️ ${r.flags.map(dashEsc).join(" · ")}</div>` : "";
     const sigs = r.status ? `<span style="font-size:11px;color:var(--muted);">TTD: ${r.sig.operator?"✔":"✘"} Opr · ${r.sig.supervisor?"✔":"✘"} Spv · ${r.sig.superintendent?"✔":"✘"} Spt</span>` : "";
-    return `<tr class="dash-row ${r.state}">
+    return `<tr class="dash-row ${r.state}" tabindex="0" role="button" title="Klik untuk membuka checklist tanggal ini" onclick="openDashboardRow(${i})" onkeydown="if(event.key==='Enter')openDashboardRow(${i})">
       <td style="white-space:nowrap;">${dashEsc(r.tanggal)}</td>
       <td>${dashEsc(r.shift)}</td>
       <td>${dashEsc(r.title)}</td>
@@ -984,22 +986,57 @@ function renderDashboardDetail(){
     </tr>`;
   }).join("");
   box.innerHTML = `
-    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${rows.length} baris ditampilkan</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${rows.length} baris ditampilkan · klik baris untuk membuka checklist pada tanggal &amp; shift tersebut</div>
     <div style="overflow-x:auto;"><table class="chk-table">
       <thead><tr><th>Tanggal</th><th>Shift</th><th>Checklist</th><th>Group Jadwal</th><th>Group Tercatat</th><th>Status</th><th>Keterangan Progres</th></tr></thead>
       <tbody>${trs}</tbody></table></div>`;
 }
 
-const CHECKLIST_MENU = [
+// Klik baris di "Detail per Shift" -> buka checklist/laporan pada tanggal
+// & shift baris itu (sama seperti membuka dari notifikasi), jadi bisa
+// langsung dilihat atau diubah. Catatan: kalau barisnya "Belum isi" dan
+// belum ada datanya, sistem membuat Draft kosong (sama seperti membuka
+// checklist biasa lewat menu Checklist).
+async function openDashboardRow(i){
+  const r = DASH.view && DASH.view[i];
+  if(!r) return;
+  try{
+    await openChecklistSetup(r.key);
+    const dateEl = document.getElementById("su-tanggal");
+    const shiftEl = document.getElementById("su-shift");
+    if(dateEl) dateEl.value = r.tanggal;
+    if(shiftEl) shiftEl.value = r.shift;
+    await openChecklistDirect();
+  }catch(e){
+    alert("Gagal membuka checklist: " + e.message);
+  }
+}
+
+// Menu checklist dibangun otomatis dari definisi yang dikirim server
+// (sheet template), jadi checklist baru yang ditambahkan di Code.gs
+// langsung muncul tanpa mengubah file ini. 3 checklist lama dipertahankan
+// urutan & deskripsinya.
+const CHECKLIST_MENU_BASE = [
   {key:"skimming", label:"Skimming", desc:"Daily Checklist Skimming System"},
   {key:"tapping", label:"Tapping", desc:"Daily Checklist Tapping System"},
   {key:"hmc", label:"HMC", desc:"Daily Checklist Hot Metal Crane"}
 ];
+function checklistMenu(){
+  const menu = CHECKLIST_MENU_BASE.slice();
+  Object.keys(CHECKLIST_DATA).forEach(k=>{
+    if(menu.some(m=>m.key===k)) return;
+    const d = CHECKLIST_DATA[k];
+    if(!d || !d.items || !d.items.length) return;
+    menu.push({key:k, label:d.title || k, desc:"Daily Checklist " + (d.title || k)});
+  });
+  return menu;
+}
 
-function renderChecklistPicker(){
+async function renderChecklistPicker(){
   const app = document.getElementById("app");
   app.innerHTML = "";
-  let items = CHECKLIST_MENU.map(c=>`
+  await loadChecklistDefs();
+  let items = checklistMenu().map(c=>`
     <div class="chk-item" onclick="openChecklistSetup('${c.key}')">
       <div><div class="name">${c.label}</div><div class="sub">${c.desc}</div></div>
       <div>➜</div>
@@ -1244,7 +1281,7 @@ function renderChecklistForm(){
   let rows = "";
   def.items.forEach((it, idx)=>{
     if(it.kat !== lastKat){
-      rows += `<tr class="kat-row"><td colspan="5">${it.kat}</td></tr>`;
+      if(it.kat) rows += `<tr class="kat-row"><td colspan="5">${it.kat}</td></tr>`;
       lastKat = it.kat;
     }
     const saved = savedItems[idx] || {};
@@ -1295,7 +1332,7 @@ function renderChecklistForm(){
   });
 
   const table = el(`
-    <div class="legend">Kode metode pemeriksaan — <span class="kode-badge">V</span> Visual &nbsp; <span class="kode-badge">S</span> Suara &nbsp; <span class="kode-badge">T</span> Sentuh &nbsp; <span class="kode-badge">B</span> Bau &nbsp;|&nbsp; Hasil: V=Normal, X=Abnormal tidak tertangani, O=Abnormal tertangani &nbsp;|&nbsp; <span style="box-shadow:inset 3px 0 0 var(--bad);padding-left:4px;">garis merah</span> = belum tertangani dari shift sebelumnya</div>
+    <div class="legend">Kode metode pemeriksaan — <span class="kode-badge">V</span> Visual &nbsp; <span class="kode-badge">S</span> Suara &nbsp; <span class="kode-badge">T</span> Sentuh &nbsp; <span class="kode-badge">B</span> Bau &nbsp; <span class="kode-badge">A</span> Alat &nbsp;|&nbsp; Hasil: V=Normal, X=Abnormal tidak tertangani, O=Abnormal tertangani &nbsp;|&nbsp; <span style="box-shadow:inset 3px 0 0 var(--bad);padding-left:4px;">garis merah</span> = belum tertangani dari shift sebelumnya</div>
     <div style="overflow-x:auto;">
     <table class="chk-table" id="chk-table">
       <thead>
