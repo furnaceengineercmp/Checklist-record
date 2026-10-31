@@ -56,6 +56,10 @@ button.btn:disabled{opacity:.5;cursor:not-allowed;}
 .chk-item:hover{border-color:var(--accent);}
 .chk-item .name{font-weight:600;}
 .chk-item .sub{font-size:12px;color:var(--muted);}
+.chk-item.has-op{border-left:6px solid var(--oc);}
+.op-pill{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:12px;font-size:11.5px;font-weight:700;}
+.op-legend{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:14px;align-items:center;}
+.op-legend .op-pill{margin-top:0;}
 .breadcrumb{font-size:13px;color:var(--muted);margin-bottom:6px;}
 .breadcrumb span{cursor:pointer;color:var(--accent);}
 .crumb-bar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
@@ -209,24 +213,11 @@ const GROUPS = ["1","2","3","4"];
 const KODE_KETERANGAN = {V:"Visual", S:"Suara", T:"Sentuh", B:"Bau", A:"Alat"};
 const ROLE_LABEL = {operator:"Operator", supervisor:"Supervisor", superintendent:"Superintendent", engineer:"Engineer"};
 
-/* ======================= STATE ======================= */
 /* ======================= DYNAMIC CHECKLIST DEFINITIONS =======================
- * CHECKLIST_DATA above is only the FALLBACK/first-paint copy now - the
- * real source of truth is whatever's currently on the "Skimming NEW" /
- * "Tapping NEW" / "HMC NEW" sheets, fetched fresh via loadChecklistDefs()
- * on every login/boot (see Code.gs's getChecklistDefs_ /
- * parseChecklistDefinitionFromSheet_ for how that's parsed off the
- * sheet). So editing a template sheet - add/remove/reorder items, tweak
- * wording, bump the Version label - shows up here automatically, with
- * nothing to change in this file.
- *
- * If the fetch fails (offline, server error) this silently keeps the
- * hardcoded fallback above rather than breaking the app - it just means
- * whatever was last shipped in this file is used until the network
- * comes back.
- *
- * Cached as a single shared promise so every caller (boot, login,
- * opening each checklist) triggers only ONE actual network request. */
+ * CHECKLIST_DATA di atas hanya cadangan/first-paint. Sumber sebenarnya
+ * adalah sheet template, diambil lewat loadChecklistDefs() setiap boot/login
+ * (lihat getChecklistDefs_ di Code.gs). Kalau gagal, cadangan dipakai.
+ * Dibungkus satu promise bersama supaya hanya ada SATU request jaringan. */
 let _checklistDefsPromise = null;
 function loadChecklistDefs(){
   if(_checklistDefsPromise) return _checklistDefsPromise;
@@ -238,6 +229,7 @@ function loadChecklistDefs(){
   return _checklistDefsPromise;
 }
 
+/* ======================= STATE ======================= */
 let SESSION = JSON.parse(localStorage.getItem("cf_session") || "null");
 let CURRENT = { checklistKey:null, tanggal:null, shift:null, group:null, record:null, sigPads:{}, prevHandover:null, prevOpenItems:{} };
 let saveTimer = null;
@@ -250,31 +242,15 @@ let notificationFirstLoad = true;
 /* ======================= HELPERS ======================= */
 function el(html){
   // Returns a DocumentFragment so templates with multiple top-level
-  // elements (e.g. a breadcrumb + a grid) are ALL kept when appended,
-  // instead of silently dropping everything after the first element.
+  // elements are ALL kept when appended.
   const t = document.createElement("template");
   t.innerHTML = html.trim();
   return t.content;
 }
-// Formats a Date object as a plain yyyy-mm-dd string using its LOCAL
-// calendar date (year/month/day as the browser's timezone sees them) -
-// deliberately NEVER via toISOString(), which converts to UTC first and
-// silently rolls the date back a day for anyone in a positive UTC offset
-// (e.g. Asia/Jakarta, UTC+7) whenever the local time is near midnight.
-// That mismatch was the root cause of "Tanggal 7 Pagi doesn't show the
-// handover note from Tanggal 6 Malam" - see prevShiftKey() below.
+
 /* ======================= INFO MODAL (mobile-friendly "read full text") =======================
- * Used for 2 things that get cut off or hidden on a narrow phone screen:
- *  - the "Standar Pemeriksaan" column, which is hidden entirely below
- *    720px (see .std-col{display:none} in the CSS) - tapping the little
- *    ℹ button next to an item's name shows it here instead.
- *  - the "Catatan / Penanganan" text input, which can hold a long
- *    carried-over note from the previous shift that gets visually
- *    truncated inside the narrow input box - tapping the 🔍 button next
- *    to it shows the input's current full value here (read-only; keep
- *    editing in the input itself as usual).
- * Tapping ANYWHERE on the overlay (including the box itself) closes it,
- * per request - there's no separate "close" button needed. */
+ * Dipakai untuk kolom "Standar Pemeriksaan" (disembunyikan di layar sempit)
+ * dan isi "Catatan / Penanganan" yang panjang. Ketuk di mana saja untuk menutup. */
 function showInfoModal(title, text){
   closeInfoModal();
   const overlay = document.createElement("div");
@@ -298,6 +274,8 @@ function showCatatanModal(idx){
   showInfoModal("Catatan / Penanganan", inp ? inp.value : "");
 }
 
+// yyyy-mm-dd dari tanggal LOKAL (jangan toISOString(): UTC menggeser tanggal
+// mundur sehari untuk zona waktu positif seperti Asia/Jakarta).
 function localDateStr(d){
   const y = d.getFullYear();
   const m = String(d.getMonth()+1).padStart(2,"0");
@@ -306,37 +284,24 @@ function localDateStr(d){
 }
 function todayStr(){ return localDateStr(new Date()); }
 // Tanggal OPERASIONAL: shift Malam (23:00-07:00) dicatat pada tanggal hari
-// MULAINYA, jadi selama belum lewat jam 07:00 tanggalnya masih tanggal
-// kemarin - bukan mengikuti tanggal kalender di HP yang sudah ganti lewat
-// tengah malam (itu yang bikin pekerja shift malam salah tanggal). Aturan
-// yang sama dipakai server (currentOperationalDate_ di Code.gs). Caranya:
-// mundurkan jam 7 jam, lalu ambil tanggal kalendernya.
+// MULAINYA, jadi sebelum jam 07:00 tanggalnya masih kemarin. Aturan sama
+// dengan server (currentOperationalDate_ di Code.gs).
 function operationalDateStr(now){
   return localDateStr(new Date((now || new Date()).getTime() - 7*3600*1000));
 }
 
 /* ======================= TIERED APPROVAL STAGES =======================
- * A checklist now moves through 4 statuses in order:
- *   Draft -> Menunggu Supervisor -> Menunggu Superintendent -> Final
- * Each forward step requires that stage's own role to sign their own
- * signature box first, then click that stage's "kirim" button - Operator
- * signs & sends to Supervisor, Supervisor signs & sends to
- * Superintendent, Superintendent signs & finalizes. Engineer can sign
- * ANY box and push ANY stage forward (full override), and is the only
- * role that can send a report back to Draft once it's moved past that
- * (see revertToDraft()/actionSetDraft on the backend - unchanged). */
+ * Draft -> Menunggu Supervisor -> Menunggu Superintendent -> Final.
+ * Tiap langkah maju butuh role tahap itu menandatangani kotaknya sendiri
+ * lalu menekan tombol kirim. Engineer boleh menandatangani/memajukan tahap
+ * apa pun dan satu-satunya yang bisa mengembalikan ke Draft. */
 const STAGE_ORDER = ["Draft","Menunggu Supervisor","Menunggu Superintendent","Final"];
-// Whose turn it is to act (edit items/sign/advance) at each status -
-// besides Engineer, who can always act at any stage.
 const STAGE_ACTIVE_ROLE = {
   "Draft": ["operator","supervisor"],
   "Menunggu Supervisor": ["supervisor"],
   "Menunggu Superintendent": ["superintendent"],
   "Final": []
 };
-// The next status + who triggers it + which signature box must be filled
-// first, keyed by CURRENT status (i.e. "what happens if the active role
-// clicks the one action button available at this stage").
 const STAGE_NEXT = {
   "Draft": {action:"submitToSupervisor", nextStatus:"Menunggu Supervisor", byRole:"operator", needsSig:"operator", label:"Kirim ke Supervisor"},
   "Menunggu Supervisor": {action:"submitToSuperintendent", nextStatus:"Menunggu Superintendent", byRole:"supervisor", needsSig:"supervisor", label:"Kirim ke Superintendent"},
@@ -347,16 +312,12 @@ function statusBadgeClass(status){
   if(status === "Menunggu Supervisor" || status === "Menunggu Superintendent") return "pending";
   return "draft";
 }
-// Is the given role (besides engineer, who's always active) the one
-// currently allowed to edit items/sign/advance at this status?
 function isActiveRoleForStatus(role, status){
   if(role === "engineer") return true;
   return (STAGE_ACTIVE_ROLE[status] || []).indexOf(role) !== -1;
 }
 
-// Renders a row of pill-shaped BUTTONS instead of a plain "a / b / c" text
-// breadcrumb. `steps` is an array of {label, fn}; the LAST step should
-// have no `fn` (rendered as the current, non-clickable step).
+// Baris tombol pill sebagai breadcrumb. Langkah TERAKHIR tanpa `fn`.
 function crumbBar(steps){
   const parts = steps.map((s,i)=>{
     const isLast = i === steps.length-1;
@@ -441,9 +402,8 @@ async function refreshNotifications(silent){
   try{
     const data = await api("getNotifications", {});
     notificationData = data || {items:[],count:0};
-    // Jam kerja akun berputar mengikuti jadwal rotasi Group - perbarui label
-    // di pojok atas dari data server supaya selalu sesuai hari ini (bukan
-    // nilai saat login, yang bisa kedaluwarsa kalau tab dibiarkan terbuka).
+    // Jam kerja akun berputar mengikuti rotasi Group - perbarui label di
+    // pojok atas dari data server supaya selalu sesuai hari ini.
     if(notificationData.assignedShift !== undefined && SESSION){
       const ns = notificationData.assignedShift || "", ng = notificationData.assignedGroup || "";
       if(SESSION.shift !== ns || SESSION.shiftGroup !== ng){
@@ -565,7 +525,7 @@ async function showBrowserNotification(data){
 function boot(){
   setUserBox();
   if(!SESSION){ renderLogin(); return; }
-  loadChecklistDefs(); // fire-and-forget - kicks off the fetch early so it's likely ready by the time a checklist is opened
+  loadChecklistDefs(); // fire-and-forget
   renderHome();
   initNotificationPolling();
 }
@@ -695,14 +655,9 @@ function renderHome(){
 }
 
 /* ======================= DASHBOARD RANGKUMAN =======================
- * Rangkuman semua checklist (Skimming/Tapping/HMC) untuk rentang tanggal:
- * shift mana yang belum mengisi, perlu dicek ("salah isi": Group tidak
- * sesuai jadwal rotasi, atau Final tapi item kosong/TTD kurang), atau
- * masih progress (lengkap dengan keterangan berhenti di tahap mana) -
- * plus rapor per Group dan per Shift. Data datang dari action
- * "getDashboard" (Code.gs); rapor & filter dihitung di sini supaya
- * mengubah filter tidak perlu memanggil server lagi. Record belum ada
- * datanya, jadi ditampilkan sebagai "belum tersedia". */
+ * Rangkuman semua checklist untuk rentang tanggal (action "getDashboard"
+ * di Code.gs): shift belum isi, perlu dicek, progress; plus rapor per
+ * Group dan per Shift. Filter dihitung di sini tanpa memanggil server. */
 const DASH_STATE_LABEL = {belum:"Belum isi", progress:"Progress", salah:"Perlu dicek", selesai:"Selesai"};
 let DASH = {rows:[], checklists:[], rapor:"all", typeHide:{}, filter:{chk:"", shift:"", grp:"", state:"todo"}};
 
@@ -712,7 +667,7 @@ function renderDashboard(fromCache){
   const app = document.getElementById("app");
   app.innerHTML = "";
   if(fromCache !== true) CURRENT.fromDashboard = false; // dibuka dari menu = mulai baru
-  const endD = new Date(Date.now() - 7*3600*1000); // tanggal operasional (sebelum 07:00 = kemarin)
+  const endD = new Date(Date.now() - 7*3600*1000); // tanggal operasional
   const startD = new Date(endD); startD.setDate(startD.getDate() - 6);
   const startVal = (DASH.start) || localDateStr(startD);
   const endVal = (DASH.end) || localDateStr(endD);
@@ -729,9 +684,8 @@ function renderDashboard(fromCache){
     </div>
     <div id="dash-body"></div>
   `));
-  // Kembali dari checklist: tampilkan data yang SUDAH dimuat seketika (tanpa
-  // memuat ulang), pulihkan filter & posisi scroll, lalu segarkan diam-diam
-  // hanya tanggal yang barusan dibuka.
+  // Kembali dari checklist: tampilkan data yang sudah dimuat seketika,
+  // pulihkan filter & scroll, lalu segarkan diam-diam tanggal yang dibuka.
   if(fromCache === true && DASH.rows && DASH.rows.length){
     renderDashboardBody();
     window.scrollTo(0, DASH.scrollY || 0);
@@ -748,7 +702,7 @@ async function refreshDashboardDay(tanggal){
     if(!document.getElementById("dash-body")) return;          // sudah pindah halaman
     const fresh = data.rows || [];
     const before = JSON.stringify(DASH.rows.filter(r=>r.tanggal===tanggal));
-    if(before === JSON.stringify(fresh)) return;                // tidak ada perubahan -> jangan geser tampilan
+    if(before === JSON.stringify(fresh)) return;                // tidak berubah -> jangan geser tampilan
     const order = {}; DASH.checklists.forEach((c,i)=>{ order[c.key] = i; });
     DASH.rows = DASH.rows.filter(r=>r.tanggal!==tanggal).concat(fresh).sort((a,b)=>
       a.tanggal < b.tanggal ? -1 : a.tanggal > b.tanggal ? 1 :
@@ -794,10 +748,8 @@ function dashCount(rows){
   return c;
 }
 
-// Jenis laporan yang sedang dipilih untuk panel Rapor: "all" = semua
-// checklist digabung, "<key>" = satu checklist saja (skimming/tapping/hmc/
-// dst - daftar dibangun dari data server, jadi jenis baru di masa depan
-// otomatis muncul di pilihan), "record" = Record (belum ada datanya).
+// Jenis laporan untuk panel Rapor: "all" = semua digabung, "<key>" = satu
+// checklist, "record" = Record (belum ada datanya).
 function dashRaporRows(rows){
   const j = DASH.rapor || "all";
   if(j === "record") return [];
@@ -830,8 +782,8 @@ function dashRaporTable(title, groups){
     <div style="overflow-x:auto;"><table class="chk-table"><thead><tr><th>&nbsp;</th><th>Selesai</th><th>Progress</th><th>Belum isi</th><th>Perlu dicek</th><th>Total</th><th>% Selesai</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-// Grafik batang bertumpuk (HTML/CSS murni, tanpa library): satu batang per
-// item, panjang segmen = persentase tiap status dari total item itu.
+// Grafik batang bertumpuk (HTML/CSS murni): satu batang per item, panjang
+// segmen = persentase tiap status dari total item itu.
 // items: [{label, rows, emptyText?}]
 function dashStackedChart(title, items, labelWidth){
   const segs = [["selesai","Selesai"],["progress","Progress"],["salah","Perlu dicek"],["belum","Belum isi"]];
@@ -859,20 +811,15 @@ function dashGroupChart(groups){
     groups.map(g=>Object.assign({emptyText}, g)));
 }
 
-// Grafik per JENIS laporan (Skimming / Tapping / HMC / ... / Record):
-// membandingkan jenis mana yang sering belum selesai, sudah selesai, atau
-// belum diisi. Selalu menampilkan SEMUA jenis (tidak ikut pilihan
-// dropdown Rapor, karena tujuannya membandingkan antar jenis). Jenis baru
-// otomatis ikut karena daftarnya dari data server.
+// Grafik per JENIS laporan (semua checklist + Record), tidak ikut dropdown
+// Rapor karena tujuannya membandingkan antar jenis.
 function dashTypeAllItems(){
   const items = DASH.checklists.map(c=>({key:c.key, label:c.title, rows: DASH.rows.filter(r=>r.key===c.key)}));
   items.push({key:"record", label:"Record", rows:[], emptyText:"belum tersedia"});
   return items;
 }
-// Kotak centang per jenis laporan: bebas dicentang/dilepas kombinasi apa
-// pun (bukan memilih salah satu). Default semua tercentang; jenis baru yang
-// muncul di masa depan otomatis tercentang karena yang disimpan adalah
-// daftar yang DISEMBUNYIKAN (typeHide), bukan yang ditampilkan.
+// Kotak centang per jenis laporan. Yang disimpan adalah daftar yang
+// DISEMBUNYIKAN (typeHide), jadi jenis baru otomatis tercentang.
 function dashTypeChart(){
   const boxes = dashTypeAllItems().map(it=>`
     <label class="type-chk"><input type="checkbox" data-k="${dashEsc(it.key)}" ${DASH.typeHide[it.key]?"":"checked"} onchange="setDashType(this.dataset.k,this.checked)"> ${dashEsc(it.label)}</label>`).join("");
@@ -1034,11 +981,9 @@ function renderDashboardDetail(){
       <tbody>${trs}</tbody></table></div>`;
 }
 
-// Klik baris di "Detail per Shift" -> buka checklist/laporan pada tanggal
-// & shift baris itu (sama seperti membuka dari notifikasi), jadi bisa
-// langsung dilihat atau diubah. Catatan: kalau barisnya "Belum isi" dan
-// belum ada datanya, sistem membuat Draft kosong (sama seperti membuka
-// checklist biasa lewat menu Checklist).
+// Klik baris di "Detail per Shift" -> buka checklist pada tanggal & shift
+// baris itu. Kalau "Belum isi", sistem membuat Draft kosong (sama seperti
+// membuka lewat menu Checklist).
 async function openDashboardRow(i){
   const r = DASH.view && DASH.view[i];
   if(!r) return;
@@ -1057,10 +1002,9 @@ async function openDashboardRow(i){
   }
 }
 
-// Menu checklist dibangun otomatis dari definisi yang dikirim server
-// (sheet template), jadi checklist baru yang ditambahkan di Code.gs
-// langsung muncul tanpa mengubah file ini. 3 checklist lama dipertahankan
-// urutan & deskripsinya.
+// Menu checklist dibangun otomatis dari definisi server (sheet template),
+// jadi checklist baru langsung muncul tanpa mengubah file ini. 3 checklist
+// lama dipertahankan urutan & deskripsinya.
 const CHECKLIST_MENU_BASE = [
   {key:"skimming", label:"Skimming", desc:"Daily Checklist Skimming System"},
   {key:"tapping", label:"Tapping", desc:"Daily Checklist Tapping System"},
@@ -1077,38 +1021,83 @@ function checklistMenu(){
   return menu;
 }
 
+/* ======================= KETERANGAN OPERATOR + WARNA =======================
+ * Label "untuk operator apa" + warna tiap checklist di halaman Pilih
+ * Checklist. Hanya LABEL dan warna - semua akun operator tetap bisa membuka
+ * semua checklist, tidak ada pembatasan akses. Pemetaan dicari lewat nama
+ * checklist di menu; kalau nama tidak dikenal, dipakai urutannya di menu:
+ * 1 Skimming, 2 Tapping, 3 HMC, 4-5 Allround, 6 Baleman, 7 Casting,
+ * 8 Packaging, 9 Feed Area, 10 Water Checker, 11 Feed Area, 12 Clamshell,
+ * 13-16 Ladle Furnace, 17 HMC. Checklist baru di akhir menu tanpa
+ * pemetaan = tampil biasa tanpa label. */
+const OPERATOR_TYPES = {
+  skimming:{name:"Operator Skimming", color:"#ea580c"},
+  tapping:{name:"Operator Tapping", color:"#2563eb"},
+  hmc:{name:"Operator HMC", color:"#dc2626"},
+  allround:{name:"Operator Allround", color:"#7c3aed"},
+  baleman:{name:"Operator Baleman", color:"#0d9488"},
+  casting:{name:"Operator Casting", color:"#ca8a04"},
+  packaging:{name:"Operator Packaging", color:"#db2777"},
+  feedarea:{name:"Operator Feed Area", color:"#16a34a"},
+  waterchecker:{name:"Operator Water Checker", color:"#0891b2"},
+  clamshell:{name:"Operator Clamshell", color:"#4f46e5"},
+  ladle:{name:"Operator Ladle Furnace", color:"#78716c"}
+};
+const OPERATOR_BY_LABEL = {
+  "skimming":"skimming", "tapping":"tapping", "hmc":"hmc",
+  "dust collector":"allround", "electrode":"allround", "baleman":"baleman",
+  "shotting (casting)":"casting", "packaging":"packaging",
+  "electric hoist":"feedarea", "cooling system":"waterchecker",
+  "electrode clamping":"feedarea", "clamshell crane":"clamshell",
+  "ladle furnace":"ladle", "electrode & sistem hidrolik":"ladle",
+  "cooling system lf":"ladle", "dust collector & hvac lf":"ladle",
+  "hoist 10 t hmc":"hmc"
+};
+const OPERATOR_BY_POSITION = ["skimming","tapping","hmc","allround","allround","baleman","casting","packaging","feedarea","waterchecker","feedarea","clamshell","ladle","ladle","ladle","ladle","hmc"];
+function operatorForMenuItem(c, idx){
+  const t = OPERATOR_BY_LABEL[String(c.label||"").trim().toLowerCase()] || OPERATOR_BY_POSITION[idx];
+  return OPERATOR_TYPES[t] ? Object.assign({id:t}, OPERATOR_TYPES[t]) : null;
+}
+function opPillHtml(op){
+  return `<span class="op-pill" style="background:${op.color}26;color:${op.color};">👷 ${op.name}</span>`;
+}
+
 async function renderChecklistPicker(){
   CURRENT.fromDashboard = false;
   const app = document.getElementById("app");
   app.innerHTML = "";
   await loadChecklistDefs();
-  let items = checklistMenu().map(c=>`
-    <div class="chk-item" onclick="openChecklistSetup('${c.key}')">
-      <div><div class="name">${c.label}</div><div class="sub">${c.desc}</div></div>
+  const used = {};
+  let items = checklistMenu().map((c,idx)=>{
+    const op = operatorForMenuItem(c, idx);
+    if(op) used[op.id] = op;
+    return `
+    <div class="chk-item${op ? " has-op" : ""}"${op ? ` style="--oc:${op.color};"` : ""} onclick="openChecklistSetup('${c.key}')">
+      <div><div class="name">${c.label}</div><div class="sub">${c.desc}</div>${op ? opPillHtml(op) : ""}</div>
       <div>➜</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
+  const legend = Object.keys(used).length
+    ? `<div class="op-legend"><span style="font-size:12px;color:var(--muted);">Keterangan warna:</span>${Object.keys(used).map(k=>opPillHtml(used[k])).join("")}</div>
+       <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">Label ini hanya petunjuk - semua akun operator tetap bisa membuka semua checklist.</div>` : "";
   app.appendChild(el(`
     ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, {label:"Checklist"}])}
     <h2>Pilih Checklist</h2>
+    ${legend}
     <div class="chk-list">${items}</div>
   `));
 }
 
 /* ======================= SETUP: TANGGAL / SHIFT =======================
- * Group is NO LONGER chosen here as a separate step - as soon as
- * Tanggal/Shift are set, the checklist form opens directly. Which Group
- * shows up is resolved automatically on the backend (from whatever was
- * used previously for this shift/date, or the shift right before it) -
- * see resolveGroupForDate_ in Code.gs. The Group itself is then just a
- * dropdown INSIDE the already-open form (in the formbar, above "Kode
- * metode pemeriksaan"), the same spot "Ganti Group" used to be. */
+ * Group TIDAK dipilih di sini - begitu Tanggal/Shift diset, form checklist
+ * langsung terbuka. Group di-resolve otomatis oleh backend
+ * (resolveGroupForDate_ di Code.gs) dan bisa diganti lewat dropdown di
+ * dalam form. */
 async function openChecklistSetup(key){
   CURRENT.checklistKey = key;
   CURRENT.group = null;
   const app = document.getElementById("app");
   app.innerHTML = "";
-  // Only actually waits the first time (loadChecklistDefs caches its
-  // promise) - already resolved by the time this runs on repeat visits.
   app.appendChild(el(`<div class="msg info"><span class="spinner"></span> Memuat definisi checklist...</div>`));
   await loadChecklistDefs();
   app.innerHTML = "";
@@ -1130,10 +1119,8 @@ async function openChecklistSetup(key){
   `));
 }
 
-/* Opens the checklist form right away for the chosen Tanggal/Shift. The
- * Group is resolved automatically on the backend (autoProvision:true also
- * creates an empty Draft row the first time this exact tanggal/shift/group
- * combo is opened, same as before). */
+/* Membuka form checklist untuk Tanggal/Shift terpilih. Group di-resolve
+ * backend (autoProvision:true membuat Draft kosong saat pertama dibuka). */
 async function openChecklistDirect(){
   const tanggal = document.getElementById("su-tanggal").value;
   const shift = document.getElementById("su-shift").value;
@@ -1142,8 +1129,7 @@ async function openChecklistDirect(){
   CURRENT.tanggal = tanggal; CURRENT.shift = shift; CURRENT.group = null;
   statusBox.innerHTML = `<div class="msg info"><span class="spinner"></span> Memuat data...</div>`;
   try{
-    // Tiga hal yang tidak saling bergantung dijalankan BERSAMAAN (dulu
-    // berurutan, sehingga waktu tunggunya dijumlahkan).
+    // Tiga hal yang tidak saling bergantung dijalankan BERSAMAAN.
     const [rec] = await Promise.all([
       api("getChecklist", {checklistName: CURRENT.checklistKey, tanggal, shift, autoProvision: true}),
       loadPrevShiftHandover(),
@@ -1157,16 +1143,9 @@ async function openChecklistDirect(){
   }
 }
 
-/* Fired from the Group <select> inside the already-open form. Group is
- * NOT part of the data key anymore - there is only ONE record per
- * Tanggal+Shift, no matter which Group is selected. So changing this
- * dropdown never re-fetches anything and never touches the item rows,
- * catatan, or signatures already on screen - it just relabels who filled
- * this shift in, and that label rides along on the next autosave/submit
- * (see saveDraft/submitFinal, which always send CURRENT.group). The one
- * time we DO re-render is when no Group was chosen yet at all (brand new
- * checklist row, table not shown yet) - there is nothing to lose there
- * since the item table isn't on screen yet. */
+/* Dari dropdown Group di dalam form. Group BUKAN bagian kunci data - hanya
+ * ada SATU record per Tanggal+Shift. Mengubahnya hanya mengganti label
+ * siapa yang mengisi, dikirim pada autosave/submit berikutnya. */
 function onGroupChange(newGroup){
   if(!newGroup || newGroup === CURRENT.group) return;
   const hadNoGroup = !CURRENT.group;
@@ -1175,16 +1154,12 @@ function onGroupChange(newGroup){
   if(hadNoGroup) renderChecklistForm();
 }
 
-/* Looks up the immediately-preceding shift's handover note (same Group)
- * so it can be shown as a banner at the top of the form - Pagi's
- * previous shift is the PREVIOUS DAY's Malam. Failures are silent
- * (missing/blocked previous record just means no banner is shown). */
+/* Mencari catatan serah-terima shift sebelumnya (Pagi -> Malam hari
+ * sebelumnya). Gagal = diam (banner tidak muncul). */
 function prevShiftKey(tanggal, shift){
   if(shift === "Siang") return {tanggal, shift:"Pagi"};
   if(shift === "Malam") return {tanggal, shift:"Siang"};
-  // Pagi -> previous day's Malam. Parsed and re-formatted purely in LOCAL
-  // time via localDateStr() (never toISOString()) - see its comment above
-  // for why that matters here specifically.
+  // Pagi -> Malam hari sebelumnya, murni waktu LOKAL (lihat localDateStr).
   const d = new Date(tanggal + "T00:00:00");
   d.setDate(d.getDate() - 1);
   return {tanggal: localDateStr(d), shift:"Malam"};
@@ -1195,19 +1170,12 @@ async function loadPrevShiftHandover(){
   CURRENT.prevOpenItems = {};
   try{
     const prev = prevShiftKey(CURRENT.tanggal, CURRENT.shift);
-    // No `group` sent on purpose: the previous shift's note should show up
-    // regardless of which Group filled it in (and `autoProvision` is left
-    // off too, so just peeking here never creates a phantom draft row for
-    // a shift nobody actually opened).
+    // Tanpa `group` dan tanpa `autoProvision` dengan sengaja.
     const prevRec = await api("getChecklist", {
       checklistName: CURRENT.checklistKey, tanggal: prev.tanggal, shift: prev.shift
     });
-    // `.handover` and `.openItems` come straight from the backend now, and
-    // are ALWAYS populated regardless of role or whether that previous
-    // shift's report is Final-locked - every role needs to see this
-    // operational handover info, even operator/supervisor who otherwise
-    // can't see a locked shift's full itemized data (see
-    // extractContinuityInfo_ in Code.gs).
+    // `.handover` dan `.openItems` selalu diisi backend untuk semua role,
+    // meski laporan sebelumnya Final (lihat extractContinuityInfo_).
     if(prevRec && prevRec.found){
       if(prevRec.handover){
         CURRENT.prevHandover = {text: prevRec.handover, shiftLabel: SHIFTS.find(s=>s.id===prev.shift).label, tanggal: prev.tanggal};
@@ -1226,24 +1194,16 @@ function canEditRole(){
 function isLockedForMe(rec){
   if(!rec || !rec.found) return false;
   if(rec.status !== "Final") return false;
-  // Final: locked (hidden) for operator & supervisor; visible for superintendent & engineer
+  // Final: terkunci (tersembunyi) untuk operator & supervisor
   return (SESSION.role === "operator" || SESSION.role === "supervisor");
 }
 
-// Items (Hasil/Catatan) are editable by whoever is the ACTIVE role for
-// the report's current stage - same rule as isActiveRoleForStatus()
-// already uses for "Simpan"/signing: Operator (or Supervisor) at Draft,
-// Supervisor at Menunggu Supervisor, Superintendent at Menunggu
-// Superintendent. So once Operator sends it up the chain, Operator can
-// no longer edit, but whichever role it's now WAITING ON can - including
-// fixing a mistake the Operator made - right up until THEY send it to
-// the next stage, at which point it locks for them too. Engineer can
-// always edit everything, at any stage (full override).
+// Item (Hasil/Catatan) bisa diedit oleh role AKTIF pada tahap saat ini.
+// Engineer selalu bisa mengedit semuanya (override penuh).
 function itemsReadOnlyFor(statusEff){
   return !isActiveRoleForStatus(SESSION.role, statusEff);
 }
-// Which status each role's OWN signature box requires to be editable -
-// Engineer can edit any box at any status.
+// Status yang dibutuhkan agar kotak TTD tiap role bisa diedit.
 const SIG_ROLE_STATUS = {"operator":"Draft","supervisor":"Menunggu Supervisor","superintendent":"Menunggu Superintendent"};
 function sigEditableFor(role, statusEff){
   if(SESSION.role === "engineer") return true;
@@ -1257,12 +1217,8 @@ function renderChecklistForm(){
   const rec = CURRENT.record;
   app.innerHTML = "";
 
-  // statusEff: the record's real status once it exists, else "Draft" -
-  // every permission check below (items, group, each signature box, the
-  // stage-advance button) is driven off this one value, per the tiered
-  // approval chain: Draft -> Menunggu Supervisor -> Menunggu
-  // Superintendent -> Final. See STAGE_NEXT/itemsReadOnlyFor/
-  // sigEditableFor above.
+  // statusEff: status asli record bila ada, kalau tidak "Draft" - semua
+  // pengecekan izin di bawah bersumber dari satu nilai ini.
   const statusEff = (rec && rec.found) ? rec.status : "Draft";
   const itemsReadOnly = itemsReadOnlyFor(statusEff);
   const isFinal = statusEff === "Final";
@@ -1306,13 +1262,8 @@ function renderChecklistForm(){
     return;
   }
 
-  // Previous-shift handover note - shown to EVERY role (Operator,
-  // Supervisor, Superintendent, Engineer alike), even when that previous
-  // shift is already Final and locked, because knowing what the last
-  // shift flagged matters to whoever is filling in THIS shift regardless
-  // of role. Only this one note is exempt from the lock - the rest of
-  // that previous shift's data stays hidden from Operator/Supervisor per
-  // the usual rule (see isLockedForMe() below, which is unaffected).
+  // Catatan serah-terima shift sebelumnya - tampil untuk SEMUA role, bahkan
+  // bila shift itu sudah Final dan terkunci.
   if(CURRENT.prevHandover){
     app.appendChild(el(`
       <div class="msg info" style="margin-bottom:16px;">
@@ -1334,7 +1285,7 @@ function renderChecklistForm(){
     return;
   }
 
-  // build item rows grouped by kategori
+  // baris item dikelompokkan per kategori
   const savedItems = (rec && rec.found && rec.dataJson) ? JSON.parse(rec.dataJson) : {};
   const prevOpenItems = CURRENT.prevOpenItems || {};
   let lastKat = null;
@@ -1346,12 +1297,9 @@ function renderChecklistForm(){
     }
     const saved = savedItems[idx] || {};
     const s = saved.awal || {};
-    // Carry-over: if the PREVIOUS shift left this exact item as X
-    // (Abnormal, belum tertangani) with a catatan, and THIS shift hasn't
-    // written anything of its own for it yet, pre-fill the catatan field
-    // with that carried-over note - still a normal editable text field,
-    // so this shift can add to it (e.g. note it's now handled) once they
-    // pick a new Hasil. Never overwrites a catatan this shift already has.
+    // Carry-over: bila shift SEBELUMNYA meninggalkan item ini sebagai X
+    // (belum tertangani) dengan catatan, dan shift ini belum menulis apa
+    // pun, isi catatan dengan catatan itu (tetap bisa diedit).
     let catatanVal = s.c || "";
     let carriedOver = false;
     if(!catatanVal && !s.h && prevOpenItems[idx]){
@@ -1410,7 +1358,7 @@ function renderChecklistForm(){
   `);
   app.appendChild(table);
 
-  // handover note for the NEXT shift
+  // catatan serah-terima untuk shift BERIKUTNYA
   const handoverText = (savedItems._handover && savedItems._handover.text) || "";
   app.appendChild(el(`
     <div class="sig-box" style="margin-top:20px;">
@@ -1419,9 +1367,8 @@ function renderChecklistForm(){
     </div>
   `));
 
-  // signatures - each box is only editable by ITS OWN role, and only at
-  // that role's own stage in the chain (Engineer can edit any of the 3
-  // at any stage, as a full override).
+  // tanda tangan - tiap kotak hanya bisa diedit role-nya sendiri pada
+  // tahapnya (Engineer bisa mengedit ketiganya kapan saja).
   const savedSig = (rec && rec.found && rec.signatures) ? JSON.parse(rec.signatures) : {};
   app.appendChild(el(`<div class="sig-grid" id="sig-grid"></div>`));
   const sigWrap = document.getElementById("sig-grid");
@@ -1440,11 +1387,9 @@ function renderChecklistForm(){
     sigWrap.appendChild(box);
   });
 
-  // savebar - "Simpan" is available to whoever can currently act at this
-  // stage (see isActiveRoleForStatus), the one stage-advance button shown
-  // is whichever one applies to the CURRENT status (see STAGE_NEXT), and
-  // "Kembalikan ke Draft" now works from ANY non-Draft status (not just
-  // Final) so Engineer can unwind a wrong stage just as easily.
+  // savebar - "Simpan" untuk yang aktif di tahap ini, satu tombol
+  // maju sesuai STAGE_NEXT, dan "Kembalikan ke Draft" dari status apa pun
+  // selain Draft (hanya Engineer).
   const canSaveProgress = isActiveRoleForStatus(SESSION.role, statusEff);
   const stageInfo = STAGE_NEXT[statusEff];
   const canAdvance = stageInfo && (SESSION.role === stageInfo.byRole || SESSION.role === "engineer");
@@ -1467,7 +1412,7 @@ function renderChecklistForm(){
   `);
   app.appendChild(savebar);
 
-  // init signature pads after DOM insert
+  // init signature pads setelah DOM dimasukkan
   setTimeout(()=>{
     ["operator","supervisor","superintendent"].forEach(role=>{
       initSigPad(role, savedSig[role]?.img);
@@ -1476,11 +1421,8 @@ function renderChecklistForm(){
 }
 
 /* ======================= EXPORT PDF - 1 HARI (SEMUA SHIFT) =======================
- * Lets Engineer print/export all 3 shifts (Pagi/Siang/Malam) of one day +
- * group in a single PDF, instead of opening & printing each shift one by
- * one. Fetches the 3 shift records, renders a read-only combined view,
- * then reuses the browser's own print-to-PDF (same mechanism as the
- * existing per-shift "Export PDF" button). */
+ * Engineer bisa mencetak ketiga shift (Pagi/Siang/Malam) dalam satu PDF
+ * lewat print-to-PDF browser. */
 async function exportDayPdf(){
   const def = CHECKLIST_DATA[CURRENT.checklistKey];
   const tanggal = CURRENT.tanggal, group = CURRENT.group;
@@ -1490,9 +1432,8 @@ async function exportDayPdf(){
   try{
     const shiftsData = {};
     for(const s of SHIFTS){
-      // No `group` sent on purpose: pick up whichever Group actually
-      // worked each shift that day, same as the physical Form Fisik does,
-      // instead of forcing all 3 shifts to the currently-viewed Group.
+      // Tanpa `group` dengan sengaja: ambil Group yang benar-benar bekerja
+      // tiap shift hari itu.
       shiftsData[s.id] = await api("getChecklist", {checklistName: CURRENT.checklistKey, tanggal, shift: s.id});
     }
     renderDayPrintView(def, tanggal, group, shiftsData);
@@ -1548,9 +1489,7 @@ function renderDayPrintView(def, tanggal, group, shiftsData){
     <h2>${def.title} — Rekap 1 Hari</h2>
     <p><b>Tanggal:</b> ${tanggal}</p>
   `;
-  // Each shift can have its OWN Group (Group is just a label per
-  // tanggal+shift now, not a filter) - so it's shown per shift block
-  // below instead of a single day-wide Group in the header above.
+  // Tiap shift bisa punya Group sendiri, jadi ditampilkan per blok shift.
   SHIFTS.forEach(s=>{
     const rec = shiftsData[s.id];
     const found = rec && rec.found;
@@ -1610,15 +1549,8 @@ function collectFormData(){
   return {dataJson: JSON.stringify(data), signatures: JSON.stringify(signatures)};
 }
 
-// Saves the current items/handover/signatures WITHOUT changing the
-// report's status - this is what autosave uses, and what the "Simpan"
-// button in the savebar calls, at every stage of the tiered approval
-// chain (Draft, Menunggu Supervisor, Menunggu Superintendent all use
-// this same function; only the STAGE-ADVANCE action below changes
-// status). Whether the current role is even allowed to save right now
-// is enforced server-side (and mirrored client-side via
-// isActiveRoleForStatus, which is what decides whether the "Simpan"
-// button is shown at all).
+// Menyimpan item/handover/tanda tangan TANPA mengubah status (dipakai
+// autosave dan tombol "Simpan"). Izin juga ditegakkan di server.
 async function saveProgress(manual){
   const statusEff = (CURRENT.record && CURRENT.record.found) ? CURRENT.record.status : "Draft";
   if(!isActiveRoleForStatus(SESSION.role, statusEff)) return;
@@ -1644,18 +1576,13 @@ function refreshStatusBadge(){
   renderChecklistForm();
 }
 
-// Pushes the report to the NEXT stage in the tiered approval chain
-// (STAGE_NEXT[currentStatus]) - Operator sends Draft to Supervisor,
-// Supervisor sends it to Superintendent, Superintendent finalizes it.
-// Whichever stage applies right now is the only one ever offered - see
-// STAGE_NEXT and the single button rendered for it in renderChecklistForm.
+// Mendorong laporan ke tahap BERIKUTNYA (STAGE_NEXT[statusSaatIni]).
 async function advanceStage(){
   const statusEff = (CURRENT.record && CURRENT.record.found) ? CURRENT.record.status : "Draft";
   const stageInfo = STAGE_NEXT[statusEff];
   if(!stageInfo) return;
   if(!CURRENT.group){ alert("Pilih Group terlebih dahulu sebelum mengirim laporan."); return; }
-  // Quick local check so a missing signature doesn't need a round-trip to
-  // the server to be caught (the server enforces this too either way).
+  // Cek lokal tanda tangan (server tetap menegakkan juga).
   const pad = CURRENT.sigPads[stageInfo.needsSig];
   const hasSig = pad && (pad.hasDrawing || pad.existingImg);
   if(!hasSig){ alert("Tanda tangan " + ROLE_LABEL[stageInfo.needsSig] + " wajib diisi terlebih dahulu."); return; }
@@ -1699,12 +1626,8 @@ function initSigPad(role, existingImg){
   ctx.scale(ratio, ratio);
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
-  // Always draw the actual signature stroke in solid black, regardless of
-  // the app's light/dark theme. --text is whatever color is readable on
-  // THIS screen (often a light gray/white in dark mode) - using it here
-  // meant every signature saved in dark mode came out as a barely-visible
-  // gray squiggle once exported onto the white "Form Fisik" sheet. A real
-  // signature needs to look like ink on paper independent of UI theme.
+  // Tanda tangan selalu hitam pekat, apa pun tema light/dark, supaya
+  // terbaca di "Form Fisik" putih.
   ctx.strokeStyle = "#000000";
   let drawing = false, hasDrawing = false;
   const pad = { canvas, ctx, hasDrawing:false, existingImg: existingImg||"", nameOverride:null };
