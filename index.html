@@ -1235,7 +1235,7 @@ function renderChecklistForm(){
   const header = el(`
     ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, (CURRENT.fromDashboard ? {label:"📊 Dashboard", fn:"backToDashboard()"} : {label:"Checklist", fn:"renderChecklistPicker()"}), {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
     ${CURRENT.fromDashboard ? `<div class="no-print" style="margin:4px 0 10px;"><button class="btn secondary" onclick="backToDashboard()">← Kembali ke Dashboard</button></div>` : ""}
-    <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">v.${def.version}</small></h2>
+    <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">${def.docNo ? "WC : "+dashEsc(def.docNo) : (def.version ? "v."+dashEsc(def.version) : "")}</small></h2>
     <div class="formbar">
       <div class="fld"><label>Tanggal</label><div><b>${CURRENT.tanggal}</b></div></div>
       <div class="fld"><label>Shift</label><div><b>${SHIFTS.find(s=>s.id===CURRENT.shift).label}</b></div></div>
@@ -1486,7 +1486,7 @@ function renderDayPrintView(def, tanggal, group, shiftsData){
     <div class="no-print" style="margin-bottom:16px;">
       <button class="btn secondary" onclick="renderChecklistForm()">← Kembali</button>
     </div>
-    <h2>${def.title} — Rekap 1 Hari</h2>
+    <h2>${def.title} — Rekap 1 Hari${def.docNo ? " &nbsp; <small style=\"font-weight:400;\">WC : "+dashEsc(def.docNo)+"</small>" : ""}</h2>
     <p><b>Tanggal:</b> ${tanggal}</p>
   `;
   // Tiap shift bisa punya Group sendiri, jadi ditampilkan per blok shift.
