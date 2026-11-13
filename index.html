@@ -213,6 +213,18 @@ const GROUPS = ["1","2","3","4"];
 const KODE_KETERANGAN = {V:"Visual", S:"Suara", T:"Sentuh", B:"Bau", A:"Alat"};
 const ROLE_LABEL = {operator:"Operator", supervisor:"Supervisor", superintendent:"Superintendent", engineer:"Engineer"};
 
+/* Nomor dokumen per checklist (tampil di samping judul).
+ * Cadangan bila server belum mengirim def.docNo. Ubah di sini bila nomor berganti. */
+const DOC_NO = {
+  tapping:"CMP-FR-PP-112", skimming:"CMP-FR-PP-113", hmc:"CMP-FR-PP-114",
+  dustcollector:"CMP-FR-PP-115", electrode:"CMP-FR-PP-116", baleman:"CMP-FR-PP-117",
+  shotting:"CMP-FR-PP-119", packaging:"CMP-FR-PP-120", hoist:"CMP-FR-PP-121",
+  coolingsystem:"CMP-FR-PP-122", electrodeclamp:"CMP-FR-PP-123", clamshell:"CMP-FR-PP-124",
+  ladlefurnace:"CMP-FR-PP-125", electrodehidrolik:"CMP-FR-PP-126", coolinglf:"CMP-FR-PP-127",
+  dustcollectorlf:"CMP-FR-PP-128", hoisthmc:"CMP-FR-PP-129"
+};
+function docNoOf(key, def){ return DOC_NO[key] || (def && def.docNo) || ""; }
+
 /* ======================= DYNAMIC CHECKLIST DEFINITIONS =======================
  * CHECKLIST_DATA di atas hanya cadangan/first-paint. Sumber sebenarnya
  * adalah sheet template, diambil lewat loadChecklistDefs() setiap boot/login
@@ -1235,7 +1247,7 @@ function renderChecklistForm(){
   const header = el(`
     ${crumbBar([{label:"🏠 Menu Utama", fn:"renderHome()"}, (CURRENT.fromDashboard ? {label:"📊 Dashboard", fn:"backToDashboard()"} : {label:"Checklist", fn:"renderChecklistPicker()"}), {label:def.title, fn:`openChecklistSetup('${CURRENT.checklistKey}')`}, {label:"Isi Form"}])}
     ${CURRENT.fromDashboard ? `<div class="no-print" style="margin:4px 0 10px;"><button class="btn secondary" onclick="backToDashboard()">← Kembali ke Dashboard</button></div>` : ""}
-    <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">${def.docNo ? "WC : "+dashEsc(def.docNo) : (def.version ? "v."+dashEsc(def.version) : "")}</small></h2>
+    <h2>${def.title} &nbsp; <small style="color:var(--muted);font-weight:400;">${docNoOf(CURRENT.checklistKey, def) ? dashEsc(docNoOf(CURRENT.checklistKey, def)) : ""}</small></h2>
     <div class="formbar">
       <div class="fld"><label>Tanggal</label><div><b>${CURRENT.tanggal}</b></div></div>
       <div class="fld"><label>Shift</label><div><b>${SHIFTS.find(s=>s.id===CURRENT.shift).label}</b></div></div>
@@ -1486,7 +1498,7 @@ function renderDayPrintView(def, tanggal, group, shiftsData){
     <div class="no-print" style="margin-bottom:16px;">
       <button class="btn secondary" onclick="renderChecklistForm()">← Kembali</button>
     </div>
-    <h2>${def.title} — Rekap 1 Hari${def.docNo ? " &nbsp; <small style=\"font-weight:400;\">WC : "+dashEsc(def.docNo)+"</small>" : ""}</h2>
+    <h2>${def.title} — Rekap 1 Hari${docNoOf(CURRENT.checklistKey, def) ? " &nbsp; <small style=\"font-weight:400;\">"+dashEsc(docNoOf(CURRENT.checklistKey, def))+"</small>" : ""}</h2>
     <p><b>Tanggal:</b> ${tanggal}</p>
   `;
   // Tiap shift bisa punya Group sendiri, jadi ditampilkan per blok shift.
