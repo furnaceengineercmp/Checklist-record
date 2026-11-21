@@ -1291,7 +1291,7 @@ function renderChecklistForm(){
         <div class="big">🔒</div>
         <h3>Laporan periode ini sudah FINAL</h3>
         <p>Laporan untuk tanggal/shift ini sudah dikirim final oleh shift bertugas dan terkunci.<br>
-        Hubungi Engineer jika perlu perubahan.</p>
+        Hubungi Superintendent atau Engineer jika perlu perubahan.</p>
       </div>
     `));
     return;
@@ -1401,11 +1401,16 @@ function renderChecklistForm(){
 
   // savebar - "Simpan" untuk yang aktif di tahap ini, satu tombol
   // maju sesuai STAGE_NEXT, dan "Kembalikan ke Draft" dari status apa pun
-  // selain Draft (hanya Engineer).
+  // selain Draft (Engineer; Superintendent hanya di tahapnya / Final).
   const canSaveProgress = isActiveRoleForStatus(SESSION.role, statusEff);
   const stageInfo = STAGE_NEXT[statusEff];
   const canAdvance = stageInfo && (SESSION.role === stageInfo.byRole || SESSION.role === "engineer");
-  const canRevert = statusEff !== "Draft" && SESSION.role === "engineer";
+  // Engineer: dari status apa pun. Superintendent: hanya saat laporan
+  // menunggu dirinya (dikirim Supervisor) atau sudah Final.
+  const canRevert = statusEff !== "Draft" && (
+    SESSION.role === "engineer" ||
+    (SESSION.role === "superintendent" && (statusEff === "Menunggu Superintendent" || statusEff === "Final"))
+  );
   const canExportPdf = ["supervisor","superintendent","engineer"].includes(SESSION.role);
   const canExportDay = SESSION.role === "engineer";
   const viewOnlyNote = (!canSaveProgress && !isFinal)
@@ -1599,8 +1604,8 @@ async function advanceStage(){
   const hasSig = pad && (pad.hasDrawing || pad.existingImg);
   if(!hasSig){ alert("Tanda tangan " + ROLE_LABEL[stageInfo.needsSig] + " wajib diisi terlebih dahulu."); return; }
   const confirmMsg = stageInfo.nextStatus === "Final"
-    ? "Kirim laporan sebagai FINAL? Setelah final, operator & supervisor tidak bisa mengubah/melihat lagi (kecuali dibuka kembali oleh Engineer)."
-    : `${stageInfo.label}? Setelah dikirim, laporan ini tidak bisa diedit lagi kecuali dibuka kembali oleh Engineer.`;
+    ? "Kirim laporan sebagai FINAL? Setelah final, operator & supervisor tidak bisa mengubah/melihat lagi (kecuali dikembalikan ke Draft oleh Superintendent/Engineer)."
+    : `${stageInfo.label}? Setelah dikirim, laporan ini tidak bisa diedit lagi kecuali dikembalikan ke Draft oleh Superintendent/Engineer.`;
   if(!confirm(confirmMsg)) return;
   const payload = Object.assign({
     checklistName: CURRENT.checklistKey, tanggal: CURRENT.tanggal, shift: CURRENT.shift, group: CURRENT.group
@@ -1616,7 +1621,8 @@ async function advanceStage(){
 }
 
 async function revertToDraft(){
-  if(!confirm("Kembalikan laporan ini menjadi DRAFT? Operator/Supervisor akan bisa mengedit kembali.")) return;
+  const wasFinal = CURRENT.record && CURRENT.record.status === "Final";
+  if(!confirm("Kembalikan laporan ini menjadi DRAFT? Operator/Supervisor akan bisa mengedit kembali" + (wasFinal ? ", dan status FINAL dibatalkan." : ".") + " Alurnya harus diulang: Operator → Supervisor → Superintendent.")) return;
   try{
     const data = await api("setDraft", {id: CURRENT.record.id});
     CURRENT.record = data;
